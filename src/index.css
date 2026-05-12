@@ -2,8 +2,352 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
-@theme {
-    --color-primary: #0E6478;
-    --color-secondary: #fff;
-    --color-secondary-dark: #1F1F1F;
+/* :root {
+    --color-primary: #F8F9FA;     
+    --color-secondary: #FFFFFF; 
+    --color-accent: #2563EB;    
+    --color-accent: #2563EB;   
+    --color-text: #1E3A8A;      
+    --color-grey: #64748B;   
+    --color-border: #E2E8F0;       
+    --color-danger: #EF4444;    
+    --color-on-accent: var(--color-secondary);
+    --color-accent-soft: color-mix(in srgb, var(--color-accent) 12%, transparent);
+    --color-accent-strong: color-mix(in srgb, var(--color-accent) 85%, var(--color-primary));
+    --color-surface-90: color-mix(in srgb, var(--color-secondary) 90%, transparent);
+    --color-surface-hover: color-mix(in srgb, var(--color-secondary) 85%, var(--color-primary));
+    --color-danger-soft: color-mix(in srgb, var(--color-danger) 12%, transparent);
+    --color-overlay: color-mix(in srgb, var(--color-text) 40%, transparent);
+    --color-shadow-accent: color-mix(in srgb, var(--color-accent) 30%, transparent);
+    --main-gradient: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, var(--color-overlay) 100%);
+    --font-family: 'Almarai', sans-serif;
+}
+
+.dark {
+    --color-primary: #1F1F1F;    
+    --color-secondary: #181818;  
+    --color-accent: #3B82F6;    
+    --color-text: #F1F5F9;     
+    --color-grey: #94A3B8;    
+    --color-border: color-mix(in srgb, var(--color-secondary) 70%, var(--color-primary));
+    --color-on-accent: var(--color-text);
+    --color-accent-strong: color-mix(in srgb, var(--color-accent) 70%, var(--color-primary));
+    --color-overlay: color-mix(in srgb, var(--color-primary) 60%, transparent);
+    --color-shadow-accent: color-mix(in srgb, var(--color-accent) 35%, transparent);
+} */
+
+
+:root {
+    /* ================= LIGHT MODE ================= */
+    --color-primary: #F6FEFF;      /* Background: lightBackground */
+    --color-secondary: #FFFFFF;    /* Surface: lightSurface */
+    
+    /* Brand Colors */
+    --color-accent: #0AB3BA;       /* primaryTeal */
+    --color-accent-secondary: #F28A4C; /* accentOrange */
+    
+    --color-text: #0F172A;         /* lightTextPrimary */
+    --color-grey: #475569;         /* lightTextSecondary */
+    --color-border: #E2E8F0;       /* lightBorder */
+    
+    /* Status */
+    --color-success: #22C55E;
+    --color-warning: #F59E0B;
+    --color-danger: #EF4444;       /* error */
+    --color-info: #3B82F6;
+
+    /* Derived Colors (متغيرات مشتقة للتفاعلات) */
+    --color-on-accent: #FFFFFF;
+    --color-accent-soft: color-mix(in srgb, var(--color-accent) 12%, transparent);
+    --color-accent-strong: color-mix(in srgb, var(--color-accent) 85%, var(--color-primary));
+    --color-surface-90: color-mix(in srgb, var(--color-secondary) 90%, transparent);
+    --color-surface-hover: color-mix(in srgb, var(--color-secondary) 95%, var(--color-accent));
+    --color-danger-soft: color-mix(in srgb, var(--color-danger) 12%, transparent);
+    --color-overlay: color-mix(in srgb, var(--color-text) 10%, transparent);
+    --color-shadow-accent: color-mix(in srgb, var(--color-accent) 20%, transparent);
+    
+    --main-gradient: linear-gradient(135deg, var(--color-accent) 0%, #09B2B9 100%);
+    --font-family: 'Almarai', sans-serif;
+}
+
+.dark {
+    /* ================= DARK MODE ================= */
+    --color-primary: #0F172A;      /* darkBackground */
+    --color-secondary: #1E293B;    /* darkSurface */
+    
+    /* نستخدم الـ Teal الأصلي مع زيادة السطوع قليلاً في الداكن إذا لزم الأمر */
+    --color-accent: #0AB3BA;       
+    
+    --color-text: #F8FAFC;         /* darkTextPrimary */
+    --color-grey: #CBD5E1;         /* darkTextSecondary */
+    --color-border: #334155;       /* darkBorder */
+    
+    /* Derived Colors (Dark Mode) */
+    --color-on-accent: #0F172A;
+    --color-accent-strong: color-mix(in srgb, var(--color-accent) 70%, var(--color-primary));
+    --color-overlay: color-mix(in srgb, var(--color-primary) 60%, transparent);
+    --color-shadow-accent: color-mix(in srgb, var(--color-accent) 40%, transparent);
+    --color-surface-hover: color-mix(in srgb, var(--color-secondary) 80%, var(--color-accent));
+}
+
+* {
+    font-family: var(--font-family) !important;
+}
+
+body {
+    background-color: var(--color-primary);
+    background-image: linear-gradient(180deg,
+        color-mix(in srgb, var(--color-secondary) 20%, transparent) 0%,
+        var(--color-primary) 40%,
+        color-mix(in srgb, var(--color-accent) 8%, var(--color-primary)) 100%);
+    color: var(--color-text);
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.theme-bg {
+    background-color: var(--color-primary);
+    background-image: linear-gradient(160deg,
+        color-mix(in srgb, var(--color-secondary) 18%, transparent) 0%,
+        var(--color-primary) 52%,
+        color-mix(in srgb, var(--color-accent) 9%, var(--color-primary)) 100%);
+}
+
+.theme-surface {
+    background-color: var(--color-secondary);
+    background-image: linear-gradient(160deg,
+        color-mix(in srgb, var(--color-secondary) 96%, white) 0%,
+        var(--color-secondary) 48%,
+        color-mix(in srgb, var(--color-accent) 5%, var(--color-secondary)) 100%);
+}
+
+.theme-surface-90 {
+    background-color: var(--color-surface-90);
+    background-image: linear-gradient(160deg,
+        color-mix(in srgb, var(--color-secondary) 92%, transparent) 0%,
+        var(--color-surface-90) 50%,
+        color-mix(in srgb, var(--color-accent) 8%, transparent) 100%);
+}
+
+.theme-accent {
+    background-color: var(--color-accent);
+    background-image: linear-gradient(135deg,
+        color-mix(in srgb, var(--color-accent) 92%, white) 0%,
+        var(--color-accent) 45%,
+        color-mix(in srgb, var(--color-accent) 68%, var(--color-primary)) 100%);
+}
+
+.theme-accent-strong {
+    background-color: var(--color-accent-strong);
+    background-image: linear-gradient(135deg,
+        color-mix(in srgb, var(--color-accent) 95%, white) 0%,
+        var(--color-accent-strong) 52%,
+        color-mix(in srgb, var(--color-accent) 72%, var(--color-primary)) 100%);
+}
+
+.theme-accent-soft {
+    background-color: var(--color-accent-soft);
+    background-image: linear-gradient(135deg,
+        color-mix(in srgb, var(--color-accent) 18%, transparent) 0%,
+        color-mix(in srgb, var(--color-accent) 8%, transparent) 100%);
+}
+
+.theme-danger-soft {
+    background-color: var(--color-danger-soft);
+    background-image: linear-gradient(135deg,
+        color-mix(in srgb, var(--color-danger) 16%, transparent) 0%,
+        color-mix(in srgb, var(--color-danger) 7%, transparent) 100%);
+}
+
+.theme-overlay {
+    background-color: var(--color-overlay);
+    background-image: linear-gradient(180deg,
+        color-mix(in srgb, var(--color-overlay) 60%, transparent) 0%,
+        color-mix(in srgb, var(--color-overlay) 90%, transparent) 100%);
+}
+
+.theme-text {
+    color: var(--color-text);
+}
+
+.theme-text-muted {
+    color: var(--color-grey);
+}
+
+.theme-text-accent {
+    color: var(--color-accent);
+}
+
+.theme-text-on-accent {
+    color: var(--color-on-accent);
+}
+
+.theme-text-danger {
+    color: var(--color-danger);
+}
+
+.theme-border {
+    border-color: var(--color-border);
+}
+
+.theme-shadow-accent {
+    box-shadow: 0 12px 24px var(--color-shadow-accent);
+}
+
+.theme-hover-surface:hover {
+    background-color: var(--color-surface-hover);
+    background-image: linear-gradient(135deg,
+        color-mix(in srgb, var(--color-secondary) 90%, white) 0%,
+        var(--color-surface-hover) 100%);
+}
+
+.theme-hover-accent:hover {
+    background-color: var(--color-accent-soft);
+    background-image: linear-gradient(135deg,
+        color-mix(in srgb, var(--color-accent) 24%, transparent) 0%,
+        color-mix(in srgb, var(--color-accent) 10%, transparent) 100%);
+}
+
+.theme-gradient-header {
+    background-image: linear-gradient(135deg,
+        color-mix(in srgb, var(--color-accent) 12%, var(--color-secondary)) 0%,
+        color-mix(in srgb, var(--color-secondary) 96%, transparent) 44%,
+        color-mix(in srgb, var(--color-accent) 8%, var(--color-primary)) 100%);
+}
+
+.theme-gradient-panel {
+    background-image: linear-gradient(135deg,
+        color-mix(in srgb, var(--color-accent) 15%, var(--color-secondary)) 0%,
+        color-mix(in srgb, var(--color-secondary) 94%, transparent) 45%,
+        color-mix(in srgb, var(--color-accent) 9%, var(--color-secondary)) 100%);
+}
+
+.theme-gradient-border {
+    background-image: linear-gradient(135deg,
+        color-mix(in srgb, var(--color-accent) 82%, white) 0%,
+        color-mix(in srgb, var(--color-accent) 40%, var(--color-secondary)) 50%,
+        color-mix(in srgb, var(--color-accent) 75%, var(--color-primary)) 100%);
+}
+
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type=number] {
+  -webkit-appearance: textfield;
+    appearance: textfield;
+}
+
+.theme-hover-danger:hover {
+    background-color: var(--color-danger-soft);
+    background-image: linear-gradient(135deg,
+        color-mix(in srgb, var(--color-danger) 22%, transparent) 0%,
+        color-mix(in srgb, var(--color-danger) 10%, transparent) 100%);
+}
+
+.theme-hover-danger-solid:hover {
+        background-color: var(--color-danger);
+        background-image: linear-gradient(135deg,
+            color-mix(in srgb, var(--color-danger) 92%, white) 0%,
+            var(--color-danger) 100%);
+        color: white;
+}
+
+.theme-hover-text-accent:hover {
+    color: var(--color-accent);
+}
+
+.no-scrollbar {
+    -ms-overflow-style: none;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+    display: none;
+}
+
+*::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+*::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+    background-color: var(--color-border);
+    border-radius: 999px;
+    border: 2px solid var(--color-primary);
+    background-clip: content-box;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+    background-color: var(--color-accent);
+}
+
+*::-webkit-scrollbar-corner {
+    background: transparent;
+}
+
+/* Ensure form controls follow theme colors (selects, options, inputs, textareas) */
+select,
+textarea,
+input,
+option,
+optgroup {
+    color: var(--color-text);
+}
+
+.theme-surface select,
+.theme-surface input,
+.theme-surface textarea,
+.theme-surface option,
+.theme-surface optgroup {
+    background-color: transparent;
+    color: var(--color-text);
+}
+
+/* Style option backgrounds where the browser allows it */
+select option,
+select optgroup {
+    background-color: var(--color-secondary);
+    color: var(--color-text);
+}
+
+option:disabled {
+    color: var(--color-grey);
+}
+
+/* Global placeholder color to match theme */
+input::placeholder,
+textarea::placeholder {
+    color: var(--color-grey);
+    opacity: 1;
+}
+
+/* Try to override native select appearance so our colors apply better */
+select {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    background-image: none;
+}
+
+/* Hide default arrow on IE/Edge */
+select::-ms-expand {
+    display: none;
+}
+
+/* Dark-mode explicit rules for selects/options */
+.dark select,
+.dark select option,
+.dark select optgroup {
+    background-color: var(--color-secondary) !important;
+    color: var(--color-text) !important;
+}
+
+/* Fallback: when browser ignores option styling, force parent surface color */
+.dark .theme-surface {
+    background-color: var(--color-secondary) !important;
 }

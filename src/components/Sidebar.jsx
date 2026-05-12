@@ -37,6 +37,12 @@ const navItems = [
     icon: <FolderSharedIcon />,
     path: "/main-page/patients-records",
   },
+  {
+    id: 3,
+    name: "الحجوزات",
+    icon: <FolderSharedIcon />,
+    path: "/main-page/appointments",
+  },
 ];
 
 const Sidebar = () => {

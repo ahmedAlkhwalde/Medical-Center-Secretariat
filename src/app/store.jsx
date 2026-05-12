@@ -3,6 +3,7 @@ import uiReducer from "../features/uiSlice";
 import authReducer from "../features/auth/authSlice";
 import scheduleReducer from "../features/schedule/scheduleSlice";
 import patientsReducer from "../features/patients/patientsSlice";
+import appointmentSlice from "../features/appointment/appointmentslice";
 
 export const store = configureStore({
   reducer: {
@@ -10,5 +11,6 @@ export const store = configureStore({
     auth: authReducer,
     schedule: scheduleReducer,
     patients: patientsReducer,
+    appointment: appointmentSlice,
   },
 });

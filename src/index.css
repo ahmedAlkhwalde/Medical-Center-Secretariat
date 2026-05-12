@@ -259,10 +259,95 @@ input[type=number] {
 }
 
 .no-scrollbar {
-    scrollbar-width: none;
     -ms-overflow-style: none;
 }
 
 .no-scrollbar::-webkit-scrollbar {
     display: none;
+}
+
+*::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+*::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+    background-color: var(--color-border);
+    border-radius: 999px;
+    border: 2px solid var(--color-primary);
+    background-clip: content-box;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+    background-color: var(--color-accent);
+}
+
+*::-webkit-scrollbar-corner {
+    background: transparent;
+}
+
+/* Ensure form controls follow theme colors (selects, options, inputs, textareas) */
+select,
+textarea,
+input,
+option,
+optgroup {
+    color: var(--color-text);
+}
+
+.theme-surface select,
+.theme-surface input,
+.theme-surface textarea,
+.theme-surface option,
+.theme-surface optgroup {
+    background-color: transparent;
+    color: var(--color-text);
+}
+
+/* Style option backgrounds where the browser allows it */
+select option,
+select optgroup {
+    background-color: var(--color-secondary);
+    color: var(--color-text);
+}
+
+option:disabled {
+    color: var(--color-grey);
+}
+
+/* Global placeholder color to match theme */
+input::placeholder,
+textarea::placeholder {
+    color: var(--color-grey);
+    opacity: 1;
+}
+
+/* Try to override native select appearance so our colors apply better */
+select {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    background-image: none;
+}
+
+/* Hide default arrow on IE/Edge */
+select::-ms-expand {
+    display: none;
+}
+
+/* Dark-mode explicit rules for selects/options */
+.dark select,
+.dark select option,
+.dark select optgroup {
+    background-color: var(--color-secondary) !important;
+    color: var(--color-text) !important;
+}
+
+/* Fallback: when browser ignores option styling, force parent surface color */
+.dark .theme-surface {
+    background-color: var(--color-secondary) !important;
 }

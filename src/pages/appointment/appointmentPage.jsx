@@ -208,9 +208,10 @@ const BookingModal = ({ doctor, onClose }) => {
 
   return (
     <div
-      className="fixed inset-0 top-12 sm:top-16 theme-overlay backdrop-blur-md flex items-center justify-center p-4"
-      style={{ zIndex: 8000 }}
-    >
+  // قمنا بإزالة top-12 و sm:top-16 لتبدأ النافذة من نقطة الصفر في الأعلى
+  className="fixed inset-0 theme-overlay backdrop-blur-md flex items-center justify-center p-0 sm:p-4" 
+  style={{ zIndex: 9999 }} // رفعنا قيمة zIndex لضمان ظهورها فوق كل شيء
+>
       <div className="theme-surface w-full max-w-6xl rounded-3xl border theme-border shadow-2xl overflow-hidden">
         <div className="flex flex-col lg:flex-row-reverse max-h-[85vh]">
           <aside className="theme-surface-90 lg:w-80 xl:w-96 border-b lg:border-b-0 lg:border-l theme-border p-5 sm:p-6 flex flex-col">

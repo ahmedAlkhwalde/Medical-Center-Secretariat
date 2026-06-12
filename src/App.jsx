@@ -84,6 +84,7 @@ import MainPage from "./pages/MainPage";
 import LoginPage from "./pages/Login/LoginPage";
 import { applyThemeMode } from "./app/theme";
 import notificationService from "./app/services/notificationChatService"; // 💡 استدعاء السيرفس الموحد الخاص بك
+import NotificationPage from "./pages/notification/NotificationPage"
 
 function App() {
   const darkMode = useSelector((state) => state.ui.darkMode);
@@ -113,6 +114,7 @@ function App() {
       <Routes>
         <Route path="/" element={<LoginPage />} />
         <Route path="/main-page/*" element={<MainPage />} />
+        <Route path="/main-page/notifications" element={<NotificationPage />} />
       </Routes>
     </div>
   );

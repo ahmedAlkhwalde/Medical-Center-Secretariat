@@ -10,6 +10,12 @@ const uiSlice = createSlice({
     isMobileOpen: false,
     darkMode: initialDarkMode,
     searchQuery: "",
+    snackbar: {
+      open: false,
+      message: "",
+      variant: "success",
+      duration: 2000,
+    },
   },
   reducers: {
     toggleCollapse: (state) => {
@@ -30,6 +36,18 @@ const uiSlice = createSlice({
     clearSearchQuery: (state) => {
       state.searchQuery = "";
     },
+    showSnackbar: (state, action) => {
+      const { message, variant = "success", duration = 2000 } = action.payload;
+      state.snackbar = {
+        open: true,
+        message,
+        variant,
+        duration,
+      };
+    },
+    hideSnackbar: (state) => {
+      state.snackbar.open = false;
+    },
   },
 });
 
@@ -40,5 +58,7 @@ export const {
   toggleDarkMode,
   setSearchQuery,
   clearSearchQuery,
+  showSnackbar,
+  hideSnackbar,
 } = uiSlice.actions;
 export default uiSlice.reducer;

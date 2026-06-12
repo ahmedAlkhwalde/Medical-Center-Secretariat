@@ -1,105 +1,3 @@
-// import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-// import apiClient from "../config/apiClient";
-
-// export const NOTIFICATION_KEYS = {
-//   all: ["notifications"],
-//   list: () => [...NOTIFICATION_KEYS.all, "list"],
-//   count: () => [...NOTIFICATION_KEYS.all, "count"],
-// };
-
-// class NotificationService {
-  
-//   // APIs Calls
-//   async updateFcmTokenApi(fcmToken) {
-//     const response = await apiClient.post('/update-fcm-token', { fcm_token: fcmToken });
-//     return response.data;
-//   }
-
-//   async getMyNotificationsApi() {
-//     const response = await apiClient.get('/notification/my-notifications');
-//     return response.data;
-//   }
-
-//   async getNotificationCountApi() {
-//     const response = await apiClient.get('/notification/my-notifications/count');
-//     return response.data;
-//   }
-
-//   async deleteAllNotificationsApi() {
-//     const response = await apiClient.delete('/notification/my-notifications/delete-all');
-//     return response.data;
-//   }
-
-//   async markAsReadApi(uuid) {
-//     const response = await apiClient.patch(`/notification/my-notifications/${uuid}/seen`);
-//     return response.data;
-//   }
-
-//   async deleteNotificationApi(uuid) {
-//     const response = await apiClient.delete(`/notification/my-notifications/${uuid}/delete`);
-//     return response.data;
-//   }
-
-//   // TanStack Query Hooks
-//   useGetNotifications() {
-//     return useQuery({
-//       queryKey: NOTIFICATION_KEYS.list(),
-//       queryFn: async () => {
-//         const response = await this.getMyNotificationsApi();
-//         return response?.success ? response.data : [];
-//       },
-//       staleTime: 1000 * 60 * 5,
-//     });
-//   }
-
-//   useGetNotificationCount() {
-//     return useQuery({
-//       queryKey: NOTIFICATION_KEYS.count(),
-//       queryFn: async () => {
-//         const response = await this.getNotificationCountApi();
-//         return response?.success ? response.count : 0;
-//       },
-//       staleTime: 1000 * 60 * 2,
-//     });
-//   }
-
-//   useUpdateFcmTokenMutation() {
-//     return useMutation({
-//       mutationFn: (fcmToken) => this.updateFcmTokenApi(fcmToken),
-//     });
-//   }
-
-//   useMarkAsReadMutation() {
-//     const queryClient = useQueryClient();
-//     return useMutation({
-//       mutationFn: (uuid) => this.markAsReadApi(uuid),
-//       onSuccess: () => queryClient.invalidateQueries({ queryKey: NOTIFICATION_KEYS.all }),
-//     });
-//   }
-
-//   useDeleteNotificationMutation() {
-//     const queryClient = useQueryClient();
-//     return useMutation({
-//       mutationFn: (uuid) => this.deleteNotificationApi(uuid),
-//       onSuccess: () => queryClient.invalidateQueries({ queryKey: NOTIFICATION_KEYS.all }),
-//     });
-//   }
-
-//   useDeleteAllNotificationsMutation() {
-//     const queryClient = useQueryClient();
-//     return useMutation({
-//       mutationFn: () => this.deleteAllNotificationsApi(),
-//       onSuccess: () => queryClient.invalidateQueries({ queryKey: NOTIFICATION_KEYS.all }),
-//     });
-//   }
-// }
-
-// export default new NotificationService();
-
-
-
-
-
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import apiClient from "../../config/apiClient"; // تذكر إرجاع خطوتين للخلف حسب مسار ملفك
@@ -173,17 +71,17 @@ class NotificationService {
   }
 
   async deleteAllNotificationsApi() {
-    const response = await apiClient.delete('/notification/my-notifications/delete-all');
+    const response = await apiClient.get('/notification/my-notifications/delete-all');
     return response.data;
   }
 
   async markAsReadApi(uuid) {
-    const response = await apiClient.patch(`/notification/my-notifications/${uuid}/seen`);
+    const response = await apiClient.get(`/notification/my-notifications/${uuid}/seen`);
     return response.data;
   }
 
   async deleteNotificationApi(uuid) {
-    const response = await apiClient.delete(`/notification/my-notifications/${uuid}/delete`);
+    const response = await apiClient.get(`/notification/my-notifications/${uuid}/delete`);
     return response.data;
   }
 

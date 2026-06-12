@@ -3,14 +3,12 @@ import React, { useEffect, useRef } from "react";
 import { Route, Routes, Navigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 
-// استيراد الصفحات (شغل الـ main)
 import MainPage from "./pages/MainPage";
 import LoginPage from "./pages/Login/LoginPage";
 import ForgotPasswordPage from "./pages/Login/ForgotPasswordPage";
 import VerifyResetCodePage from "./pages/Login/VerifyResetCodePage";
 import NewPasswordPage from "./pages/Login/NewPasswordPage";
 
-// استيراد الأدوات والثيم والإشعارات (دمج الطرفين)
 import { applyThemeMode } from "./app/theme";
 import notificationService from "./app/services/notificationChatService"; // 💡 سيرفس الإشعارات الخاص بك
 import AppSnackbar from "./components/AppSnackbar";
@@ -33,7 +31,6 @@ function App() {
 
   // 2. إدارة منطق إشعارات الفايربيس (FCM) من خلال السيرفس المدمج (شغلك)
   useEffect(() => {
-    // 🔔 تشغيل إعداد الفايربيس، جلب التوكن، وتحديثه في السيرفر تلقائياً
     notificationService.initializeFCM(isTokenProcessed);
 
     // 📩 بدء الاستماع للإشعارات والرسائل القادمة والتطبيق مفتوح (Foreground)

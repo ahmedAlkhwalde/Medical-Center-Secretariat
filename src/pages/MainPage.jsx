@@ -9,10 +9,10 @@ export default function MainPage() {
     <div>
       <Layout>
         <Routes>
-          {/* <Route index element={<SchedulePage />} /> */}
+          <Route index element={<BookingModal />} />
+          <Route path="appointments" element={<BookingModal />} />
           <Route path="schedule" element={<SchedulePage />} />
           <Route path="patients-records" element={<PatientsRecordsPage />} />
-          <Route path="appointments" element={<BookingModal />} />
           {/* <Route path="dashboard" element={<DashboardPage />} />
           <Route path="schedule" element={<SchedulePage />} />
           <Route path="specialties" element={<SpecialtiesPage />} />

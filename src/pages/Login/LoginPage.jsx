@@ -1,46 +1,108 @@
 import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate, Link } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { toggleRememberMe, login } from "../../features/auth/authSlice";
+import {
+  toggleRememberMe,
+  setCredentials,
+} from "../../features/auth/authSlice";
+import { showSnackbar, hideSnackbar } from "../../features/uiSlice";
 import AuthInput from "./Components/AuthInput";
 import { motion as Motion } from "framer-motion";
 import LoginIcon from "@mui/icons-material/Login";
+import { useLoginMutation } from "../../services/authService";
 
 const LoginPage = () => {
-  const [phone, setPhone] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errors, setErrors] = useState({});
+  const [pendingRedirect, setPendingRedirect] = useState(false);
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const location = useLocation();
+  const loginMutation = useLoginMutation();
 
   // نراقب الـ token والـ rememberMe من الـ Redux
-  const { rememberMe, token } = useSelector((state) => state.auth);
-  const passwordResetSuccess = location.state?.passwordResetSuccess;
+  const { rememberMe, token, lastUsedEmail } = useSelector(
+    (state) => state.auth,
+  );
 
   // --- أفضل مكان للانتقال ---
   // نراقب الـ token؛ بمجرد وجوده، يتم الانتقال تلقائياً
   useEffect(() => {
-    if (token) {
+    if (!token) return;
+    if (!pendingRedirect) {
       navigate("/main-page");
+      return;
     }
-  }, [token, navigate]);
+    const timer = setTimeout(() => {
+      navigate("/main-page");
+    }, 700);
+    return () => clearTimeout(timer);
+  }, [token, pendingRedirect, navigate]);
+
+  useEffect(() => {
+    if (lastUsedEmail) {
+      // setEmail(lastUsedEmail);
+    }
+  }, [lastUsedEmail]);
 
   const validate = () => {
-    let tempErrors = {};
-    if (phone.length !== 10)
-      tempErrors.phone = "يجب أن يتكون رقم الهاتف من 10 أرقام";
-    if (password.length < 8)
+    const tempErrors = {};
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      tempErrors.email = "يرجى إدخال بريد إلكتروني صحيح";
+    }
+    if (password.length < 8) {
       tempErrors.password = "يجب أن تكون كلمة المرور 8 محارف على الأقل";
+    }
     setErrors(tempErrors);
     return Object.keys(tempErrors).length === 0;
   };
 
   const handleLogin = (e) => {
     e.preventDefault();
+    dispatch(hideSnackbar());
+    setErrors({});
     if (validate()) {
-      dispatch(login({ phone, password }));
+      loginMutation.mutate(
+        { email, password },
+        {
+          onSuccess: (data) => {
+            if (!data?.token) {
+              dispatch(
+                showSnackbar({
+                  message: "تعذر تسجيل الدخول. الرجاء المحاولة لاحقاً.",
+                  variant: "error",
+                }),
+              );
+              return;
+            }
+
+            dispatch(
+              setCredentials({
+                token: data.token,
+                user: data.user ?? null,
+                rememberMe,
+                lastUsedEmail: email,
+              }),
+            );
+            dispatch(
+              showSnackbar({
+                message: "تم تسجيل الدخول بنجاح",
+                variant: "success",
+              }),
+            );
+            setPendingRedirect(true);
+          },
+          onError: (error) => {
+            dispatch(
+              showSnackbar({
+                message: "تعذر تسجيل الدخول. تحقق من البيانات.",
+                variant: "error",
+              }),
+            );
+          },
+        },
+      );
     }
   };
 
@@ -62,11 +124,10 @@ const LoginPage = () => {
             transition={{ delay: 0.2 }}
             className="text-5xl font-black theme-text-on-accent mb-6 leading-tight"
           >
-            مرحباً <br /> بالسكرتاريا
+            إدارة الاستقبال <br /> مركز الشفاء
           </Motion.h1>
-          <p className="text-lg theme-text-on-accent opacity-80 font-medium">
-            نظام متخصص لإدارة أعمال السكرتاريا وتنظيم المواعيد والملفات الطبية
-            بكفاءة واحترافية عالية.
+          <p className="text-lg theme-text-on-accent opacity-80 font-medium leading-relaxed">
+            منصتكِ اليومية لتنظيم تدفق المرضى، جدولة الحجوزات بدقة، وتنسيق مواعيد العيادات لضمان تقديم خدمة استقبال متميزة وسلسة.
           </p>
         </div>
 
@@ -75,10 +136,10 @@ const LoginPage = () => {
           <form onSubmit={handleLogin} className="space-y-6">
             <div className="text-right mb-8">
               <h3 className="text-3xl font-black theme-text-accent">
-                دخول السكرتاريا
+                تسجيل الدخول
               </h3>
               <p className="theme-text-muted">
-                سجّل دخول حسابك لإدارة أعمال المكتب والمرضى
+                أدخل بياناتك للوصول إلى لوحة التحكم
               </p>
             </div>
 
@@ -89,12 +150,12 @@ const LoginPage = () => {
             ) : null} */}
 
             <AuthInput
-              label="رقم الهاتف"
-              type="number"
-              value={phone}
-              error={errors.phone}
-              onChange={(e) => setPhone(e.target.value)}
-              placeholder="09xxxxxxxx"
+              label="البريد الإلكتروني"
+              type="email"
+              value={email}
+              error={errors.email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="name@example.com"
             />
 
             <AuthInput
@@ -126,10 +187,20 @@ const LoginPage = () => {
 
             <button
               type="submit"
-              className="w-full py-4 theme-accent theme-text-on-accent rounded-2xl font-black text-lg shadow-lg hover:opacity-90 transition-opacity flex items-center justify-center gap-2"
+              disabled={loginMutation.isPending}
+              className="w-full py-4 theme-accent theme-text-on-accent rounded-2xl font-black text-lg shadow-lg hover:opacity-90 transition-opacity flex items-center justify-center gap-2 disabled:opacity-60"
             >
-              <span>دخول النظام</span>
-              <LoginIcon fontSize="small" />
+              {loginMutation.isPending ? (
+                <span className="flex items-center gap-2">
+                  <span className="inline-flex h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                  <span>جاري الدخول...</span>
+                </span>
+              ) : (
+                <span className="flex items-center gap-2">
+                  <span>دخول النظام</span>
+                  <LoginIcon fontSize="small" />
+                </span>
+              )}
             </button>
 
             <div className="text-center">

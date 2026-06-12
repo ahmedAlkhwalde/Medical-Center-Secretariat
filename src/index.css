@@ -350,3 +350,33 @@ select::-ms-expand {
 .dark .theme-surface {
     background-color: var(--color-secondary) !important;
 }
+
+/* ================= CHAT LAYOUT FIXES ================= */
+
+/* الحاوية الرئيسية التي تجمع الهيدر والرسائل وصندوق الإدخال */
+.chat-layout-wrapper {
+    display: flex !important;
+    flex-direction: column !important;
+    height: 100vh !important; /* تأخذ كامل ارتفاع الشاشة المتاحة */
+    overflow: hidden !important; /* تمنع ظهور سكرول خارجي غريب */
+}
+
+/* الـ AppBar (الهيدر العلوية) */
+.chat-header-fixed {
+    flex-shrink: 0 !important; /* 💡 الحل السحري: تمنع الرسائل المقلوبة من ضغط الهيدر أو إخفائه */
+    z-index: 50 !important;    /* يضمن بقاء الهيدر كطبقة علوية فوق الرسائل المتصاعدة */
+}
+
+/* حاوية الرسائل التي تحتوي على السكرول و خاصية العكس */
+.chat-messages-scroll-area {
+    display: flex !important;
+    flex-direction: column-reverse !important; /* لعكس القائمة وتبدأ من الأسفل */
+    flex: 1 !important;         /* يجبر القائمة على استهلاك المساحة المتبقية فقط */
+    overflow-y: auto !important; /* حصر السكرول هنا فقط داخل منطقة الرسائل */
+}
+
+/* شريط الإدخال السفلي */
+.chat-input-fixed {
+    flex-shrink: 0 !important; /* تمنع اختفاء صندوق الكتابة عند كثرة الرسائل */
+}
+

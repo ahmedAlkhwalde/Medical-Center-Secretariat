@@ -10,29 +10,33 @@ import {
 import { logout } from "../features/auth/authSlice";
 import { useLogoutMutation } from "../services/authService";
 
-// MUI Icons
+// MUI Icons المشتركة
 import MedicalServicesIcon from "@mui/icons-material/MedicalServices";
 import LogoutIcon from "@mui/icons-material/Logout";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import CloseIcon from "@mui/icons-material/Close";
+
+// دمج الأيقونات المستوردة من الطرفين (chat & main)
 import HomeIcon from "@mui/icons-material/Home";
-import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
-import AccountTreeIcon from "@mui/icons-material/AccountTree";
-import PersonAddAlt1Icon from "@mui/icons-material/PersonAddAlt1";
-import LocalHospitalIcon from "@mui/icons-material/LocalHospital";
-import SupportAgentIcon from "@mui/icons-material/SupportAgent";
-import FolderSharedIcon from "@mui/icons-material/FolderShared";
-import MapOutlinedIcon from "@mui/icons-material/MapOutlined";
-import ChatRoundedIcon from "@mui/icons-material/ChatRounded";
-import PersonIcon from "@mui/icons-material/Person";
+import CalendarMonthIcon from "@mui/icons-material/CalendarMonth"; // للدوام والجدولة
+import AccountTreeIcon from "@mui/icons-material/AccountTree"; // للاختصاصات
+import PersonAddAlt1Icon from "@mui/icons-material/PersonAddAlt1"; // لإدارة الأطباء
+import LocalHospitalIcon from "@mui/icons-material/LocalHospital"; // للعيادات
+import SupportAgentIcon from "@mui/icons-material/SupportAgent"; // للسكرتاريا
+import FolderSharedIcon from "@mui/icons-material/FolderShared"; // لسجل المرضى
+import MapOutlinedIcon from "@mui/icons-material/MapOutlined"; // للخريطة
+import ChatIcon from "@mui/icons-material/Chat"; // مضاف من chat
+import ChatRoundedIcon from "@mui/icons-material/ChatRounded"; // مضاف من main
+import PersonIcon from "@mui/icons-material/Person"; // مضاف من main
 
-import LogoutModal from "../pages/Login/Components/LogoutModal"; // استيراد المكون الجديد
+// استيراد المكون الجديد من فرع main
+import LogoutModal from "../pages/Login/Components/LogoutModal"; 
 
-
+// دمج عناصر القائمة وتعديل الـ id لضمان عدم التكرار
 const navItems = [
   {
-    id: 2,
+    id: 1,
     name: "الحجوزات",
     icon: <FolderSharedIcon />,
     path: "/main-page/appointments",
@@ -49,7 +53,12 @@ const navItems = [
     icon: <FolderSharedIcon />,
     path: "/main-page/patients-records",
   },
-  
+  {
+    id: 4,
+    name: "محادثات",
+    icon: <ChatIcon />,
+    path: "/main-page/conversations",
+  },
 ];
 
 const Sidebar = () => {
@@ -81,7 +90,6 @@ const Sidebar = () => {
             variant: "error",
           })
         );
-        // يمكن إغلاق المودال أيضاً بعد الخطأ أو تركه مفتوحاً لإعادة المحاولة، حسب المتطلبات
         setLogoutModalOpen(false);
       },
     });

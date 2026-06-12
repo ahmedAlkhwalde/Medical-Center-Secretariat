@@ -2,6 +2,7 @@ import axios from 'axios';
 
 const AUTH_STORAGE_KEY = "manegar_auth";
 
+// دالة قراءة التوكن من الـ Storage (شغل الـ main)
 const readStoredToken = () => {
   const readFromStorage = (storage) => {
     const raw = storage.getItem(AUTH_STORAGE_KEY);
@@ -17,25 +18,36 @@ const readStoredToken = () => {
   }
 };
 
-// 1. إنشاء نسخة مخصصة من Axios بإعدادات ثابتة
+// 💡 تصدير الهوست الخاص بالمحادثات (شغل الـ chat)
+export var host_chat = 'http://10.113.180.45:8000';
+
+// 1. إنشاء نسخة مخصصة من Axios بإعدادات ثابتة ومدمجة
 const apiClient = axios.create({
-  baseURL: 'http://127.0.0.1:8000/api', 
-  
-  timeout: 60000, 
-  
+  // تم اعتماد آيبي الشبكة الخاص بالـ chat لضمان اتصال المحادثات والسيرفر معاً
+  baseURL: `${host_chat}/api`, 
+  timeout: 60000, // مضاف من فرع main لضمان عدم تعليق الطلبات الإدارية
   headers: {
-    // 'Content-Type': 'application/json',
     'Accept': 'application/json',
   },
 });
 
+// الـ Interceptor المدمج ليدعم الحالتين (الاختبار والإنتاج)
 apiClient.interceptors.request.use(
   (config) => {
-    const token = readStoredToken();
-    if (token) {
+    // 1. محاولة جلب التوكن الديناميكي من التخزين (شغل الـ main)
+    const storedToken = readStoredToken();
+    
+    // 2. توكن الاختبار الثابت الخاص بك (شغل الـ chat)
+    const myTestToken = "24|miQPV1UTDvk6TFDLJxv5X4mgdjIwYRkNs8BEbs8He4523580";
+    
+    // 🎯 الدمج الذكي: إذا وجد توكن مخزن بالـ Storage يستعمله، وإلا يسقط تلقائياً على توكن الاختبار
+    const activeToken = storedToken || myTestToken;
+
+    if (activeToken) {
       config.headers = config.headers || {};
-      config.headers.Authorization = `Bearer ${token}`;
+      config.headers.Authorization = `Bearer ${activeToken}`;
     }
+    
     return config;
   },
   (error) => Promise.reject(error),

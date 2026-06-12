@@ -1,0 +1,1302 @@
+// import React, { useRef, useEffect, useState } from 'react';
+// import { useParams, useNavigate, useLocation } from 'react-router-dom';
+// import { useChatController } from "../../firebase"; 
+// import { 
+//   Send, Mic, Square, Paperclip, Camera, 
+//   FileText, ArrowLeft, Check, CheckCheck, Loader2, Play, Pause,
+//   Trash2, Edit2, X 
+// } from 'lucide-react';
+// import { format } from 'date-fns';
+// import { getFirestore } from "firebase/firestore";
+// // تأكد من المسار الصحيح لملف firebase.js الخاص بك
+// import { db } from "../../firebase";
+// import { doc, updateDoc, onSnapshot } from "firebase/firestore"; // استيراد دوال الفايرستور
+// const BACKEND_URL = "http://10.172.194.45:8000";
+
+// // كائن صوت عالمي مستقر لا يتأثر بالـ Re-renders
+// const globalAudioPlayer = new Audio();
+
+// export default function ChatView() {
+//   const { userId: urlUserId } = useParams();
+//   // const userId = urlUserId || "patient_001"; 
+//   const userId =  "patient_001"; 
+
+//   const navigate = useNavigate();
+//   const location = useLocation();
+
+//   const { 
+//     chatName = "غرفة محادثة", 
+//     avatarUrl = "", 
+//     role = "مركز الشفاء الطبي",
+//     isActive = true 
+//   } = location.state || {};
+
+//   const c = useChatController(userId);
+//   const messagesEndRef = useRef(null);
+
+//   const [editingMessage, setEditingMessage] = useState(null); 
+//   const [presenceData, setPresenceData] = useState(null);
+
+//   // تتبع الحالات الرسومية للـ UI
+//   const [playingMessageId, setPlayingMessageId] = useState('');
+//   const [audioProgress, setAudioProgress] = useState(0);
+//   const [audioDuration, setAudioDuration] = useState(0);
+//   const [loadingAudioId, setLoadingAudioId] = useState('');
+
+//    const [tick, setTick] = useState(0);
+
+// useEffect(() => {
+//   // إذا كان المستخدم أونلاين، لا داعي للتحديث، لكن إذا أوفلاين، حدث كل 10 ثوانٍ
+//   if (presenceData?.status === "offline") {
+//     const timer = setInterval(() => {
+//       setTick((prev) => prev + 1);
+//     }, 10000); // تحديث كل 10 ثوانٍ لضمان دقة "منذ..."
+    
+//     return () => clearInterval(timer);
+//   }
+// }, [presenceData?.status]);
+
+
+
+//   // دالة مساعدة لتنسيق الوقت بشكل دقيق (0:00)
+//   const formatTime = (timeInSeconds) => {
+//     if (!isFinite(timeInSeconds) || isNaN(timeInSeconds) || timeInSeconds < 0) return "0:00";
+//     const minutes = Math.floor(timeInSeconds / 60);
+//     const seconds = Math.floor(timeInSeconds % 60);
+//     return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+//   };
+
+//   useEffect(() => {
+//   const roomRef = doc(db, 'ChatRooms', 'doctor_patient_123');
+
+
+
+//   // في ملف ChatView.jsx
+// const unsub = onSnapshot(roomRef, (docSnap) => {
+//   if (docSnap.exists()) {
+//     const data = docSnap.data();
+//     const peerData = data.presence?.[userId]; // بيانات الطرف الآخر
+    
+//     // إذا كانت بيانات الماب موجودة، ضعها كما هي
+//     if (peerData && typeof peerData === 'object') {
+//        setPresenceData(peerData);
+//     } else {
+//        // قيمة افتراضية في حال لم تكن البيانات موجودة
+//        setPresenceData({ status: 'offline', lastSeen: Date.now() });
+//     }
+//   }
+// });
+
+
+//   // تحديث الحالة عند الدخول
+//   c.updateUserPresence("online");
+
+//   // معالجة فورية عند مغادرة الصفحة أو إغلاقها
+//   const handleVisibilityChange = () => {
+//     if (document.visibilityState === 'hidden') {
+//       c.updateUserPresence("offline");
+//     } else {
+//       c.updateUserPresence("online");
+//     }
+//   };
+
+//   document.addEventListener('visibilitychange', handleVisibilityChange);
+
+//   return () => {
+//     c.updateUserPresence("offline");
+//     document.removeEventListener('visibilitychange', handleVisibilityChange);
+//     unsub();
+//   };
+// }, [userId]);
+  
+//   // ربط المستمعات بـ playingMessageId
+//   useEffect(() => {
+//     const player = globalAudioPlayer;
+
+//     const handleTimeUpdate = () => {
+//       if (playingMessageId) {
+//         setAudioProgress(player.currentTime);
+//         if (!isFinite(player.duration) || player.duration === Infinity) {
+//           if (player.seekable && player.seekable.length > 0) {
+//             setAudioDuration(player.seekable.end(0));
+//           }
+//         } else {
+//           setAudioDuration(player.duration);
+//         }
+//       }
+//     };
+
+//     const handleDurationChange = () => {
+//       if (playingMessageId) {
+//         if (isFinite(player.duration) && player.duration > 0) {
+//           setAudioDuration(player.duration);
+//         } else if (player.seekable && player.seekable.length > 0) {
+//           setAudioDuration(player.seekable.end(0));
+//         }
+//       }
+//     };
+
+//     const handleEnded = () => {
+//       setPlayingMessageId('');
+//       setAudioProgress(0);
+//       setAudioDuration(0);
+//     };
+
+//     player.addEventListener('timeupdate', handleTimeUpdate);
+//     player.addEventListener('durationchange', handleDurationChange);
+//     player.addEventListener('ended', handleEnded);
+
+//     return () => {
+//       player.removeEventListener('timeupdate', handleTimeUpdate);
+//       player.removeEventListener('durationchange', handleDurationChange);
+//       player.removeEventListener('ended', handleEnded);
+//     };
+//   }, [playingMessageId]);
+
+//   useEffect(() => {
+//     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+//   }, [c.messages]);
+
+//   const handleStartEdit = (msg) => {
+//     setEditingMessage({ id: msg.messageId, text: msg.text });
+//     c.setText(msg.text); 
+//   };
+
+//   const handleCancelEdit = () => {
+//     setEditingMessage(null);
+//     c.setText("");
+//   };
+
+//   const handleSendOrUpdate = () => {
+//     if (editingMessage) {
+//       if (typeof c.updateMessage === 'function') {
+//         c.updateMessage(editingMessage.id, c.text);
+//       }
+//       handleCancelEdit();
+//     } else {
+//       c.sendMessage();
+//     }
+//   };
+
+//   const handlePlayOrPauseAudio = async (e, messageId, fileUrl) => {
+//     e.preventDefault();
+//     e.stopPropagation();
+//     const safeUrl = fileUrl.replace(/http:\/\/[0-9.]+:8000/, BACKEND_URL);
+//     const player = globalAudioPlayer;
+    
+//     if (playingMessageId === messageId) {
+//       player.pause();
+//       setPlayingMessageId('');
+//       return;
+//     }
+
+//     try {
+//       player.pause();
+//       player.oncanplaythrough = null; 
+//       player.onerror = null;
+//       setAudioProgress(0);
+//       setAudioDuration(0);
+//       setLoadingAudioId(messageId);
+
+//       player.onerror = () => {
+//         setLoadingAudioId('');
+//         setPlayingMessageId('');
+//       };
+
+//       player.src = safeUrl;
+//       player.load(); 
+
+//       player.oncanplaythrough = async () => {
+//         setLoadingAudioId('');
+//         setPlayingMessageId(messageId);
+//         try {
+//           if (player.seekable && player.seekable.length > 0) {
+//             setAudioDuration(player.seekable.end(0));
+//           } else if (isFinite(player.duration)) {
+//             setAudioDuration(player.duration);
+//           }
+//           await player.play();
+//         } catch (playError) {
+//           setPlayingMessageId('');
+//         }
+//       };
+//     } catch (error) {
+//       setLoadingAudioId('');
+//       setPlayingMessageId('');
+//     }
+//   };
+
+//   if (c.isRoomLoading) {
+//     return (
+//       <div className="flex h-full w-full items-center justify-center bg-gray-50 dark:bg-gray-900">
+//         <div className="text-center">
+//           <Loader2 className="h-8 w-8 animate-spin text-blue-600 mx-auto mb-2" />
+//           <p className="text-xs text-gray-500 dark:text-gray-400">جاري الاتصال بغرفة الفايربيس...</p>
+//         </div>
+//       </div>
+//     );
+//   }
+
+//   return (
+//     <div className="flex h-full max-h-full w-full flex-col bg-gray-50 text-gray-900 dark:bg-[#0f172a] dark:text-gray-100 overflow-hidden" dir="rtl">
+//    <header className="flex h-16 w-full items-center justify-between border-b border-gray-200 bg-white px-4 shadow-sm dark:border-slate-800 dark:bg-[#1e293b] flex-shrink-0 z-10">
+//   <div className="flex items-center gap-3">
+//     {/* زر الرجوع */}
+//     <button onClick={() => navigate(-1)} className="rounded-full p-1 hover:bg-gray-100 dark:hover:bg-slate-700">
+//       <ArrowLeft className="h-6 w-6" />
+//     </button>
+    
+//     {/* صورة البروفايل مع مؤشر الحالة */}
+//     <div className="relative">
+//       {avatarUrl && avatarUrl !== "group_placeholder" ? (
+//         <img src={avatarUrl} alt={chatName} className="h-10 w-10 rounded-full object-cover" />
+//       ) : (
+//         <div className="flex h-10 w-10 items-center justify-center rounded-full bg-teal-500/10 text-teal-500 dark:bg-teal-500/20">
+//           <span className="font-bold">{chatName ? chatName[0] : "?"}</span>
+//         </div>
+//       )}
+      
+//       {/* النقطة الخضراء تظهر فقط إذا كان الطرف الآخر "online" */}
+//       {presenceData?.status === "online" && (
+//         <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white bg-green-500 dark:border-gray-900" />
+//       )}
+//     </div>
+
+//     {/* معلومات المستخدم */}
+//     <div>
+//       <h2 className="text-sm font-bold max-w-[200px] truncate">{chatName}</h2>
+//         <p className="text-xs text-gray-500 dark:text-gray-400">
+//       {/* تمرير الكائن بالكامل للدالة */}
+//       {role} • {c.formatLastSeen(presenceData)}
+//     </p>
+//       </div>
+//     </div>
+//   </header>
+
+//       <main className="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar bg-transparent">
+//         {c.messages && c.messages.length === 0 ? (
+//           <div className="flex h-full flex-col items-center justify-center text-gray-400">
+//             <p className="text-sm">لا توجد رسائل سابقة في الغرفة.</p>
+//           </div>
+//         ) : (
+//           c.messages && [...c.messages].reverse().map((msg) => {
+//             const isMe = msg.senderId !== "1"; 
+//             const isDeleted = msg.type === 'deleted';
+//             const safeFileUrl = msg.fileUrl ? msg.fileUrl.replace(/http:\/\/[0-9.]+:8000/, BACKEND_URL) : '';
+
+//             return (
+//               <div key={msg.messageId} className={`flex items-center gap-1 relative group ${!isMe ? 'justify-start' : 'justify-end'}`}>
+//                 {!isMe && !isDeleted && (
+//                   <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-150 flex items-center gap-1 order-last z-10">
+//                     {msg.type === 'text' && (
+//                       <button onClick={() => handleStartEdit(msg)} className="p-1 rounded-full text-gray-400 hover:text-blue-500 hover:bg-slate-800">
+//                         <Edit2 className="h-3.5 w-3.5" />
+//                       </button>
+//                     )}
+//                     <button onClick={() => { if (typeof c.deleteMessage === 'function') c.deleteMessage(msg.messageId); }} className="p-1 rounded-full text-gray-400 hover:text-red-500 hover:bg-slate-800">
+//                       <Trash2 className="h-3.5 w-3.5" />
+//                     </button>
+//                   </div>
+//                 )}
+//                 <div className={`max-w-[70%] rounded-2xl px-4 py-2 shadow-sm relative
+//                   ${isDeleted ? 'bg-slate-800 text-gray-400 italic rounded-lg border border-slate-700' : !isMe ? 'bg-[#1e293b] text-gray-100 rounded-tr-sm' : 'bg-blue-600 text-white rounded-tl-sm'}`}
+//                 >
+//                   {isDeleted && <p className="text-sm leading-relaxed">🚫 {msg.text}</p>}
+//                   {!isDeleted && msg.type === 'text' && <p className="text-sm leading-relaxed whitespace-pre-wrap">{msg.text}</p>}
+//                   {!isDeleted && msg.type === 'image' && msg.fileUrl && (
+//                     <div className="overflow-hidden rounded-lg cursor-pointer mt-1">
+//                       <img src={safeFileUrl} alt="المرفق" className="max-h-60 w-full object-cover hover:scale-105 transition-transform" />
+//                     </div>
+//                   )}
+//                   {!isDeleted && msg.type === 'file' && msg.fileUrl && (
+//                     <a href={safeFileUrl} target="_blank" rel="noreferrer" className="flex items-center gap-2 p-2 rounded bg-gray-50 dark:bg-slate-800 text-xs font-semibold mt-1">
+//                       <FileText className="h-8 w-8 text-red-500" />
+//                       <div className="truncate max-w-[150px]">
+//                         <p className="truncate text-gray-700 dark:text-gray-200">{msg.text || "ملف مستند"}</p>
+//                         <span className="text-[10px] text-gray-400">انقر للفتح</span>
+//                       </div>
+//                     </a>
+//                   )}
+//                   {!isDeleted && msg.type === 'audio' && msg.fileUrl && (
+//                     <div className="flex items-center gap-3 w-56 p-1 mt-1 text-gray-800 dark:text-gray-100" onClick={(e) => e.stopPropagation()}>
+//                       <button type="button" onClick={(e) => handlePlayOrPauseAudio(e, msg.messageId, msg.fileUrl)} className="flex h-8 w-8 min-w-[32px] items-center justify-center rounded-full bg-white text-blue-600 shadow hover:bg-gray-100 transition z-20" disabled={loadingAudioId === msg.messageId}>
+//                         {loadingAudioId === msg.messageId ? <Loader2 className="h-4 w-4 animate-spin text-blue-600" /> : playingMessageId === msg.messageId ? <Pause className="h-4 w-4 text-blue-600" /> : <Play className="h-4 w-4 text-blue-600 fill-current" />}
+//                       </button>
+//                       <div className="flex-1">
+//                         <input type="range" min="0" step="0.01" max={playingMessageId === msg.messageId && isFinite(audioDuration) && audioDuration > 0 ? audioDuration : 100} value={playingMessageId === msg.messageId ? audioProgress : 0} onChange={(e) => { if (playingMessageId === msg.messageId) { const newTime = parseFloat(e.target.value); globalAudioPlayer.currentTime = newTime; setAudioProgress(newTime); }}} className="w-full h-1 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-500" />
+//                         <span className={`text-[10px] ${!isMe ? 'text-gray-400' : 'text-blue-100'}`}>
+//                           {loadingAudioId === msg.messageId ? "جاري التحميل..." : playingMessageId === msg.messageId ? `${formatTime(audioProgress)} / ${formatTime(audioDuration)}` : "🎤 تسجيل صوتي"}
+//                         </span>
+//                       </div>
+//                     </div>
+//                   )}
+//                   <div className={`flex items-center justify-end gap-1 mt-1 text-[10px] ${!isMe ? 'text-gray-400' : 'text-blue-200'}`}>
+//                     {msg.isEdited && !isDeleted && <span className="opacity-80 scale-90 text-blue-300 font-semibold">(معدلة)</span>}
+//                     <span>{msg.timestamp ? format(msg.timestamp, 'hh:mm a') : ''}</span>
+//                     {!isMe && (<span>{msg.status === 'read' ? <CheckCheck className="h-3 w-3 text-cyan-300" /> : <Check className="h-3 w-3" />}</span>)}
+//                   </div>
+//                 </div>
+//               </div>
+//             );
+//           })
+//         )}
+//         <div ref={messagesEndRef} />
+//       </main>
+
+//       {editingMessage && (
+//         <div className="w-full bg-yellow-500/10 border-t border-yellow-500/20 px-4 py-1.5 flex items-center justify-between text-xs text-yellow-600 dark:text-yellow-400 flex-shrink-0">
+//           <div className="flex items-center gap-2 truncate max-w-[80%]">
+//             <Edit2 className="h-3.5 w-3.5" />
+//             <span className="font-semibold">جاري التعديل:</span>
+//             <span className="truncate italic text-gray-400">"{editingMessage.text}"</span>
+//           </div>
+//           <button onClick={handleCancelEdit} className="p-1 rounded-full hover:bg-slate-700 text-gray-400 hover:text-gray-200">
+//             <X className="h-4 w-4" />
+//           </button>
+//         </div>
+//       )}
+
+//       {c.isUploading && (
+//         <div className="w-full bg-blue-100 dark:bg-blue-900 p-1 text-center text-xs font-semibold text-blue-600 animate-pulse flex-shrink-0">
+//           جاري الرفع والتحديث...
+//         </div>
+//       )}
+
+//       <footer className="p-3 bg-white border-t border-gray-200 dark:bg-[#1e293b] dark:border-slate-800 flex-shrink-0">
+//         <div className="flex items-center gap-2 max-w-4xl mx-auto">
+//           <div className="flex flex-1 items-center gap-2 rounded-full bg-gray-100 px-3 py-1.5 dark:bg-slate-800">
+//             <label className="cursor-pointer p-1 text-gray-500 hover:text-gray-700 dark:text-gray-400">
+//               <Paperclip className="h-5 w-5" />
+//               <input type="file" className="hidden" onChange={(e) => e.target.files[0] && c.uploadFileAndSend(e.target.files[0], 'file', '')} />
+//             </label>
+//             <label className="cursor-pointer p-1 text-gray-500 hover:text-gray-700 dark:text-gray-400">
+//               <Camera className="h-5 w-5" />
+//               <input type="file" accept="image/*" className="hidden" onChange={(e) => e.target.files[0] && c.uploadFileAndSend(e.target.files[0], 'image', 'أرسل صورة')} />
+//             </label>
+//             {c.isRecording ? (
+//               <div className="flex-1 text-sm text-red-500 font-bold animate-pulse px-2">🔴 جاري تسجيل الصوت...</div>
+//             ) : (
+//               <input type="text" value={c.text} onChange={(e) => c.setText(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSendOrUpdate()} placeholder="اكتب رسالتك هنا..." className="flex-1 bg-transparent text-sm outline-none border-none focus:ring-0 text-gray-950 dark:text-gray-50" />
+//             )}
+//           </div>
+//           {c.text.trim().length > 0 ? (
+//             <button onClick={handleSendOrUpdate} className="flex h-10 w-10 min-w-[40px] items-center justify-center rounded-full bg-blue-600 text-white shadow hover:bg-blue-700 transition">
+//               <Send className="h-5 w-5" style={{ transform: 'scaleX(-1)' }} />
+//             </button>
+//           ) : (
+//             <button disabled={!!editingMessage} onClick={c.isRecording ? c.stopAudioRecording : c.startAudioRecording} className={`flex h-10 w-10 min-w-[40px] items-center justify-center rounded-full text-white shadow transition ${c.isRecording ? 'bg-red-500 hover:bg-red-600' : 'bg-blue-600 hover:bg-blue-700'}`}>
+//               {c.isRecording ? <Square className="h-5 w-5 fill-current" /> : <Mic className="h-5 w-5" />}
+//             </button>
+//           )}
+//         </div>
+//       </footer>
+//     </div>
+//   );
+// }
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+
+
+
+
+
+
+// import React, { useRef, useEffect, useState } from 'react';
+// import { useParams, useNavigate, useLocation } from 'react-router-dom';
+// import { useChatController } from "../../firebase"; 
+// import { 
+//   Send, Mic, Square, Paperclip, Camera, 
+//   FileText, ArrowLeft, Check, CheckCheck, Loader2, Play, Pause,
+//   Trash2, Edit2, X 
+// } from 'lucide-react';
+// import { format } from 'date-fns';
+// import { db } from "../../firebase";
+// import { doc, onSnapshot } from "firebase/firestore"; 
+// import chatService from "../../app/services/chatService"; 
+// import apiClient from '../../config/apiClient';
+
+// const BACKEND_URL = "http://10.113.180.45:8000";
+
+// // كائن صوت عالمي مستقر لا يتأثر بالـ Re-renders (من الكود القديم)
+// const globalAudioPlayer = new Audio();
+
+// export default function ChatView() {
+//   const navigate = useNavigate();
+//   const location = useLocation();
+
+//   // 🎯 استقبال البيانات الديناميكية الممررة من الـ ChatList
+//   const { 
+//     chatId: targetId,         
+//     currentUserId: myUserId,   
+//     chatName = "غرفة محادثة", 
+//     avatarUrl = "", 
+//     role = "مركز الشفاء الطبي",
+//     isActive = true 
+//   } = location.state || {};
+
+//   // جعل الـ userId ثابت بناءً على كودك أو ديناميكي
+//   const userId = myUserId || "patient_001"; 
+
+//   // الحالات المحلية (State) من الكود القديم والجديد
+//   const [firebaseRoomKey, setFirebaseRoomKey] = useState(""); 
+//   const [editingMessage, setEditingMessage] = useState(null); 
+//   const [presenceData, setPresenceData] = useState(null);
+//   const [tick, setTick] = useState(0);
+
+//   // تتبع الحالات الرسومية للـ UI الخاصة بالصوت (حرفياً من الكود القديم)
+//   const [playingMessageId, setPlayingMessageId] = useState('');
+//   const [audioProgress, setAudioProgress] = useState(0);
+//   const [audioDuration, setAudioDuration] = useState(0);
+//   const [loadingAudioId, setLoadingAudioId] = useState('');
+
+//   // هوكات الـ TanStack Query الخاصة بالربط والمزامنة
+//   const getOrCreateRoomMutation = chatService.useGetOrCreateRoomMutation();
+//   const storeMessageMutation = chatService.useStoreMessageMutation();
+
+//   // ربط الكنترولر بمفتاح الغرفة والمعرف الديناميكي
+//   const c = useChatController(firebaseRoomKey || "placeholder_room", userId);
+//   const messagesEndRef = useRef(null);
+
+//   // =============================================================
+//   // 🔄 1. جلب أو إنشاء الغرفة من الـ لارافل للحصول على الـ firebase_room_key
+//   // =============================================================
+//   useEffect(() => {
+//     if (targetId && userId) {
+//       getOrCreateRoomMutation.mutate(
+//         { senderId: userId, targetId: targetId },
+//         {
+//           onSuccess: (res) => {
+//             if (res && res.firebase_room_key) {
+//               setFirebaseRoomKey(res.firebase_room_key);
+//             }
+//           }
+//         }
+//       );
+//     }
+//   }, [targetId, userId]);
+
+//   // =============================================================
+//   // 🟢 2. مراقبة الـ Presence والتواجد الحي (تماما كما في الكود القديم)
+//   // =============================================================
+//   useEffect(() => {
+//     if (presenceData?.status === "offline") {
+//       const timer = setInterval(() => {
+//         setTick((prev) => prev + 1);
+//       }, 10000);
+//       return () => clearInterval(timer);
+//     }
+//   }, [presenceData?.status]);
+
+//   useEffect(() => {
+//     if (!firebaseRoomKey || firebaseRoomKey === "placeholder_room") return;
+
+//     const roomRef = doc(db, 'ChatRooms', firebaseRoomKey);
+
+//     const unsub = onSnapshot(roomRef, (docSnap) => {
+//       if (docSnap.exists()) {
+//         const data = docSnap.data();
+//         const peerData = data.presence?.[userId]; 
+        
+//         if (peerData && typeof peerData === 'object') {
+//           setPresenceData(peerData);
+//         } else {
+//           setPresenceData({ status: 'offline', lastSeen: Date.now() });
+//         }
+//       }
+//     });
+
+//     c.updateUserPresence("online");
+
+//     const handleVisibilityChange = () => {
+//       if (document.visibilityState === 'hidden') {
+//         c.updateUserPresence("offline");
+//       } else {
+//         c.updateUserPresence("online");
+//       }
+//     };
+
+//     document.addEventListener('visibilitychange', handleVisibilityChange);
+
+//     return () => {
+//       c.updateUserPresence("offline");
+//       document.removeEventListener('visibilitychange', handleVisibilityChange);
+//       unsub();
+//     };
+//   }, [firebaseRoomKey, userId]);
+
+//   // =============================================================
+//   // 🎵 3. منطق تشغيل الريكوردات والصوت (من الكود القديم حرفياً)
+//   // =============================================================
+//   const formatTime = (timeInSeconds) => {
+//     if (!isFinite(timeInSeconds) || isNaN(timeInSeconds) || timeInSeconds < 0) return "0:00";
+//     const minutes = Math.floor(timeInSeconds / 60);
+//     const seconds = Math.floor(timeInSeconds % 60);
+//     return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+//   };
+
+//   useEffect(() => {
+//     const player = globalAudioPlayer;
+
+//     const handleTimeUpdate = () => {
+//       if (playingMessageId) {
+//         setAudioProgress(player.currentTime);
+//         if (!isFinite(player.duration) || player.duration === Infinity) {
+//           if (player.seekable && player.seekable.length > 0) {
+//             setAudioDuration(player.seekable.end(0));
+//           }
+//         } else {
+//           setAudioDuration(player.duration);
+//         }
+//       }
+//     };
+
+//     const handleDurationChange = () => {
+//       if (playingMessageId) {
+//         if (isFinite(player.duration) && player.duration > 0) {
+//           setAudioDuration(player.duration);
+//         } else if (player.seekable && player.seekable.length > 0) {
+//           setAudioDuration(player.seekable.end(0));
+//         }
+//       }
+//     };
+
+//     const handleEnded = () => {
+//       setPlayingMessageId('');
+//       setAudioProgress(0);
+//       setAudioDuration(0);
+//     };
+
+//     player.addEventListener('timeupdate', handleTimeUpdate);
+//     player.addEventListener('durationchange', handleDurationChange);
+//     player.addEventListener('ended', handleEnded);
+
+//     return () => {
+//       player.removeEventListener('timeupdate', handleTimeUpdate);
+//       player.removeEventListener('durationchange', handleDurationChange);
+//       player.removeEventListener('ended', handleEnded);
+//     };
+//   }, [playingMessageId]);
+
+//   const handlePlayOrPauseAudio = async (e, messageId, fileUrl) => {
+//     e.preventDefault();
+//     e.stopPropagation();
+    
+//     // طريقة معالجة الرابط القديمة الأصلية لضمان عدم تلف مسارات الفايربيس
+//     const safeUrl = fileUrl ? fileUrl.replace(/http:\/\/[0-9.]+:8000/, BACKEND_URL) : '';
+//     const player = globalAudioPlayer;
+    
+//     if (playingMessageId === messageId) {
+//       player.pause();
+//       setPlayingMessageId('');
+//       return;
+//     }
+
+//     try {
+//       player.pause();
+//       player.oncanplaythrough = null; 
+//       player.onerror = null;
+//       setAudioProgress(0);
+//       setAudioDuration(0);
+//       setLoadingAudioId(messageId);
+
+//       player.onerror = () => {
+//         setLoadingAudioId('');
+//         setPlayingMessageId('');
+//       };
+
+//       player.src = safeUrl;
+//       player.load(); 
+
+//       player.oncanplaythrough = async () => {
+//         setLoadingAudioId('');
+//         setPlayingMessageId(messageId);
+//         try {
+//           if (player.seekable && player.seekable.length > 0) {
+//             setAudioDuration(player.seekable.end(0));
+//           } else if (isFinite(player.duration)) {
+//             setAudioDuration(player.duration);
+//           }
+//           await player.play();
+//         } catch (playError) {
+//           setPlayingMessageId('');
+//         }
+//       };
+//     } catch (error) {
+//       setLoadingAudioId('');
+//       setPlayingMessageId('');
+//     }
+//   };
+
+//   // =============================================================
+//   // ✉️ 4. منطق الإرسال، التعديل والمزامنة
+//   // =============================================================
+//   useEffect(() => {
+//     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+//   }, [c.messages]);
+
+//   const handleStartEdit = (msg) => {
+//     setEditingMessage({ id: msg.messageId, text: msg.text });
+//     c.setText(msg.text); 
+//   };
+
+//   const handleCancelEdit = () => {
+//     setEditingMessage(null);
+//     c.setText("");
+//   };
+
+//   const handleSendOrUpdate = async () => {
+//     if (editingMessage) {
+//       if (typeof c.updateMessage === 'function') {
+//         c.updateMessage(editingMessage.id, c.text);
+//       }
+//       handleCancelEdit();
+//     } else {
+//       if (!c.text.trim()) return;
+      
+//       const currentText = c.text;
+//       await c.sendMessage(); 
+      
+//       // التخزين في قاعدة بيانات لارافل للمزامنة
+//       storeMessageMutation.mutate({
+//         chatRoomId: firebaseRoomKey,
+//         senderId: userId,
+//         type: 'text',
+//         text: currentText,
+//         fileUrl: ''
+//       });
+//     }
+//   };
+
+//   if (getOrCreateRoomMutation.isLoading || !firebaseRoomKey || c.isRoomLoading) {
+//     return (
+//       <div className="flex h-full w-full items-center justify-center bg-gray-50 dark:bg-gray-900">
+//         <div className="text-center">
+//           <Loader2 className="h-8 w-8 animate-spin text-blue-600 mx-auto mb-2" />
+//           <p className="text-xs text-gray-500 dark:text-gray-400">جاري تأمين الاتصال بالغرفة...</p>
+//         </div>
+//       </div>
+//     );
+//   }
+
+//   return (
+//     <div className="flex h-full max-h-full w-full flex-col bg-gray-50 text-gray-900 dark:bg-[#0f172a] dark:text-gray-100 overflow-hidden" dir="rtl">
+      
+//       {/* الـ Header (من الكود القديم) */}
+//       <header className="flex h-16 w-full items-center justify-between border-b border-gray-200 bg-white px-4 shadow-sm dark:border-slate-800 dark:bg-[#1e293b] flex-shrink-0 z-10">
+//         <div className="flex items-center gap-3">
+//           <button onClick={() => navigate(-1)} className="rounded-full p-1 hover:bg-gray-100 dark:hover:bg-slate-700">
+//             <ArrowLeft className="h-6 w-6" />
+//           </button>
+          
+//           <div className="relative">
+//             {avatarUrl && avatarUrl !== "group_placeholder" ? (
+//               <img src={avatarUrl} alt={chatName} className="h-10 w-10 rounded-full object-cover" />
+//             ) : (
+//               <div className="flex h-10 w-10 items-center justify-center rounded-full bg-teal-500/10 text-teal-500 dark:bg-teal-500/20">
+//                 <span className="font-bold">{chatName ? chatName[0] : "?"}</span>
+//               </div>
+//             )}
+            
+//             {presenceData?.status === "online" && (
+//               <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white bg-green-500 dark:border-gray-900" />
+//             )}
+//           </div>
+
+//           <div>
+//             <h2 className="text-sm font-bold max-w-[200px] truncate">{chatName}</h2>
+//             <p className="text-xs text-gray-500 dark:text-gray-400">
+//               {role} • {c.formatLastSeen(presenceData)}
+//             </p>
+//           </div>
+//         </div>
+//       </header>
+
+//       {/* منطقة عرض الرسائل (من الكود القديم حرفياً لضمان سلامة الروابط والعرض) */}
+//       <main className="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar bg-transparent">
+//         {c.messages && c.messages.length === 0 ? (
+//           <div className="flex h-full flex-col items-center justify-center text-gray-400">
+//             <p className="text-sm">لا توجد رسائل سابقة في الغرفة.</p>
+//           </div>
+//         ) : (
+//           c.messages && [...c.messages].reverse().map((msg) => {
+//             const isMe = msg.senderId !== "1"; 
+//             const isDeleted = msg.type === 'deleted';
+            
+//             // معالجة الرابط القديمة الأصلية والمستقرة
+//             const safeFileUrl = msg.fileUrl ? msg.fileUrl.replace(/http:\/\/[0-9.]+:8000/, BACKEND_URL) : '';
+
+//             return (
+//               <div key={msg.messageId} className={`flex items-center gap-1 relative group ${!isMe ? 'justify-start' : 'justify-end'}`}>
+//                 {!isMe && !isDeleted && (
+//                   <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-150 flex items-center gap-1 order-last z-10">
+//                     {msg.type === 'text' && (
+//                       <button onClick={() => handleStartEdit(msg)} className="p-1 rounded-full text-gray-400 hover:text-blue-500 hover:bg-slate-800">
+//                         <Edit2 className="h-3.5 w-3.5" />
+//                       </button>
+//                     )}
+//                     <button onClick={() => { if (typeof c.deleteMessage === 'function') c.deleteMessage(msg.messageId); }} className="p-1 rounded-full text-gray-400 hover:text-red-500 hover:bg-slate-800">
+//                       <Trash2 className="h-3.5 w-3.5" />
+//                     </button>
+//                   </div>
+//                 )}
+                
+//                 <div className={`max-w-[70%] rounded-2xl px-4 py-2 shadow-sm relative
+//                   ${isDeleted ? 'bg-slate-800 text-gray-400 italic rounded-lg border border-slate-700' : !isMe ? 'bg-[#1e293b] text-gray-100 rounded-tr-sm' : 'bg-blue-600 text-white rounded-tl-sm'}`}
+//                 >
+//                   {isDeleted && <p className="text-sm leading-relaxed">🚫 {msg.text}</p>}
+//                   {!isDeleted && msg.type === 'text' && <p className="text-sm leading-relaxed whitespace-pre-wrap">{msg.text}</p>}
+                  
+//                   {/* عرض الصور من الكود القديم */}
+//                   {!isDeleted && msg.type === 'image' && msg.fileUrl && (
+//                     <div className="overflow-hidden rounded-lg cursor-pointer mt-1">
+//                       <img src={safeFileUrl} alt="المرفق" className="max-h-60 w-full object-cover hover:scale-105 transition-transform" />
+//                     </div>
+//                   )}
+                  
+//                   {/* عرض الملفات من الكود القديم */}
+//                   {!isDeleted && msg.type === 'file' && msg.fileUrl && (
+//                     <a href={safeFileUrl} target="_blank" rel="noreferrer" className="flex items-center gap-2 p-2 rounded bg-gray-50 dark:bg-slate-800 text-xs font-semibold mt-1">
+//                       <FileText className="h-8 w-8 text-red-500" />
+//                       <div className="truncate max-w-[150px]">
+//                         <p className="truncate text-gray-700 dark:text-gray-200">{msg.text || "ملف مستند"}</p>
+//                         <span className="text-[10px] text-gray-400">انقر للفتح</span>
+//                       </div>
+//                     </a>
+//                   )}
+                  
+//                   {/* تشغيل وعرض الريكوردات الصوتية من الكود القديم */}
+//                   {!isDeleted && msg.type === 'audio' && msg.fileUrl && (
+//                     <div className="flex items-center gap-3 w-56 p-1 mt-1 text-gray-800 dark:text-gray-100" onClick={(e) => e.stopPropagation()}>
+//                       <button type="button" onClick={(e) => handlePlayOrPauseAudio(e, msg.messageId, msg.fileUrl)} className="flex h-8 w-8 min-w-[32px] items-center justify-center rounded-full bg-white text-blue-600 shadow hover:bg-gray-100 transition z-20" disabled={loadingAudioId === msg.messageId}>
+//                         {loadingAudioId === msg.messageId ? <Loader2 className="h-4 w-4 animate-spin text-blue-600" /> : playingMessageId === msg.messageId ? <Pause className="h-4 w-4 text-blue-600" /> : <Play className="h-4 w-4 text-blue-600 fill-current" />}
+//                       </button>
+//                       <div className="flex-1">
+//                         <input type="range" min="0" step="0.01" max={playingMessageId === msg.messageId && isFinite(audioDuration) && audioDuration > 0 ? audioDuration : 100} value={playingMessageId === msg.messageId ? audioProgress : 0} onChange={(e) => { if (playingMessageId === msg.messageId) { const newTime = parseFloat(e.target.value); globalAudioPlayer.currentTime = newTime; setAudioProgress(newTime); }}} className="w-full h-1 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-500" />
+//                         <span className={`text-[10px] ${!isMe ? 'text-gray-400' : 'text-blue-100'}`}>
+//                           {loadingAudioId === msg.messageId ? "جاري التحميل..." : playingMessageId === msg.messageId ? `${formatTime(audioProgress)} / ${formatTime(audioDuration)}` : "🎤 تسجيل صوتي"}
+//                         </span>
+//                       </div>
+//                     </div>
+//                   )}
+                  
+//                   <div className={`flex items-center justify-end gap-1 mt-1 text-[10px] ${!isMe ? 'text-gray-400' : 'text-blue-200'}`}>
+//                     {msg.isEdited && !isDeleted && <span className="opacity-80 scale-90 text-blue-300 font-semibold">(معدلة)</span>}
+//                     <span>{msg.timestamp ? format(msg.timestamp, 'hh:mm a') : ''}</span>
+//                     {!isMe && (<span>{msg.status === 'read' ? <CheckCheck className="h-3 w-3 text-cyan-300" /> : <Check className="h-3 w-3" />}</span>)}
+//                   </div>
+//                 </div>
+//               </div>
+//             );
+//           })
+//         )}
+//         <div ref={messagesEndRef} />
+//       </main>
+
+//       {/* مؤشر التعديل */}
+//       {editingMessage && (
+//         <div className="w-full bg-yellow-500/10 border-t border-yellow-500/20 px-4 py-1.5 flex items-center justify-between text-xs text-yellow-600 dark:text-yellow-400 flex-shrink-0">
+//           <div className="flex items-center gap-2 truncate max-w-[80%]">
+//             <Edit2 className="h-3.5 w-3.5" />
+//             <span className="font-semibold">جاري التعديل:</span>
+//             <span className="truncate italic text-gray-400">"{editingMessage.text}"</span>
+//           </div>
+//           <button onClick={handleCancelEdit} className="p-1 rounded-full hover:bg-slate-700 text-gray-400 hover:text-gray-200">
+//             <X className="h-4 w-4" />
+//           </button>
+//         </div>
+//       )}
+
+//       {/* مؤشر الرفع المتزامن */}
+//       {(c.isUploading || storeMessageMutation.isLoading) && (
+//         <div className="w-full bg-blue-100 dark:bg-blue-900 p-1 text-center text-xs font-semibold text-blue-600 animate-pulse flex-shrink-0">
+//           جاري المزامنة والرفع...
+//         </div>
+//       )}
+
+//       {/* الـ Footer (من الكود القديم حرفياً لضمان سلامة الإرسال) */}
+//       <footer className="p-3 bg-white border-t border-gray-200 dark:bg-[#1e293b] dark:border-slate-800 flex-shrink-0">
+//         <div className="flex items-center gap-2 max-w-4xl mx-auto">
+//           <div className="flex flex-1 items-center gap-2 rounded-full bg-gray-100 px-3 py-1.5 dark:bg-slate-800">
+//             <label className="cursor-pointer p-1 text-gray-500 hover:text-gray-700 dark:text-gray-400">
+//               <Paperclip className="h-5 w-5" />
+//               <input type="file" className="hidden" onChange={(e) => e.target.files[0] && c.uploadFileAndSend(e.target.files[0], 'file', '')} />
+//             </label>
+//             <label className="cursor-pointer p-1 text-gray-500 hover:text-gray-700 dark:text-gray-400">
+//               <Camera className="h-5 w-5" />
+//               <input type="file" accept="image/*" className="hidden" onChange={(e) => e.target.files[0] && c.uploadFileAndSend(e.target.files[0], 'image', 'أرسل صورة')} />
+//             </label>
+//             {c.isRecording ? (
+//               <div className="flex-1 text-sm text-red-500 font-bold animate-pulse px-2">🔴 جاري تسجيل الصوت...</div>
+//             ) : (
+//               <input type="text" value={c.text} onChange={(e) => c.setText(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSendOrUpdate()} placeholder="اكتب رسالتك هنا..." className="flex-1 bg-transparent text-sm outline-none border-none focus:ring-0 text-gray-950 dark:text-gray-50" />
+//             )}
+//           </div>
+//           {c.text.trim().length > 0 ? (
+//             <button onClick={handleSendOrUpdate} className="flex h-10 w-10 min-w-[40px] items-center justify-center rounded-full bg-blue-600 text-white shadow hover:bg-blue-700 transition">
+//               <Send className="h-5 w-5" style={{ transform: 'scaleX(-1)' }} />
+//             </button>
+//           ) : (
+//             <button disabled={!!editingMessage} onClick={c.isRecording ? c.stopAudioRecording : c.startAudioRecording} className={`flex h-10 w-10 min-w-[40px] items-center justify-center rounded-full text-white shadow transition ${c.isRecording ? 'bg-red-500 hover:bg-red-600' : 'bg-blue-600 hover:bg-blue-700'}`}>
+//               {c.isRecording ? <Square className="h-5 w-5 fill-current" /> : <Mic className="h-5 w-5" />}
+//             </button>
+//           )}
+//         </div>
+//       </footer>
+//     </div>
+//   );
+// }
+
+
+
+
+
+
+
+
+
+
+
+
+
+import React, { useRef, useEffect, useState } from 'react';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
+import { useChatController } from "../../firebase"; 
+import { 
+  Send, Mic, Square, Paperclip, Camera, 
+  FileText, ArrowLeft, Check, CheckCheck, Loader2, Play, Pause,
+  Trash2, Edit2, X 
+} from 'lucide-react';
+import { format } from 'date-fns';
+import { db } from "../../firebase";
+import { doc, onSnapshot } from "firebase/firestore"; 
+import chatService from "../../app/services/chatService"; 
+import apiClient from '../../config/apiClient';
+import {host_chat} from '../../config/apiClient';
+ 
+
+const BACKEND_URL = host_chat;
+
+// كائن صوت عالمي مستقر لا يتأثر بالـ Re-renders
+const globalAudioPlayer = new Audio();
+
+export default function ChatView() {
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  // 🎯 استقبال البيانات الديناميكية الممررة من الـ ChatList
+  const { 
+    chatId: targetId,         
+    currentUserId: myUserId,   
+    chatName = "غرفة محادثة", 
+    avatarUrl = "", 
+    role = "مركز الشفاء الطبي",
+    isActive = true 
+  } = location.state || {};
+
+  // جعل الـ userId ثابت بناءً على كودك أو ديناميكي
+  const userId = myUserId || "patient_001"; 
+
+  // الحالات المحلية (State)
+  const [firebaseRoomKey, setFirebaseRoomKey] = useState(""); 
+  const [editingMessage, setEditingMessage] = useState(null); 
+  const [presenceData, setPresenceData] = useState(null);
+  const [tick, setTick] = useState(0);
+
+  // تتبع الحالات الرسومية للـ UI الخاصة بالصوت
+  const [playingMessageId, setPlayingMessageId] = useState('');
+  const [audioProgress, setAudioProgress] = useState(0);
+  const [audioDuration, setAudioDuration] = useState(0);
+  const [loadingAudioId, setLoadingAudioId] = useState('');
+
+  // هوكات الـ TanStack Query الخاصة بالربط والمزامنة
+  const getOrCreateRoomMutation = chatService.useGetOrCreateRoomMutation();
+  const storeMessageMutation = chatService.useStoreMessageMutation();
+
+  // ربط الكنترولر بمفتاح الغرفة والمعرف الديناميكي
+  const c = useChatController(firebaseRoomKey || "placeholder_room", userId);
+  const messagesEndRef = useRef(null);
+
+  // =============================================================
+  // 🔄 1. جلب أو إنشاء الغرفة من الـ لارافل للحصول على الـ firebase_room_key
+  // =============================================================
+  useEffect(() => {
+    if (targetId && userId) {
+      getOrCreateRoomMutation.mutate(
+        { senderId: userId, targetId: targetId },
+        {
+          onSuccess: (res) => {
+            if (res && res.firebase_room_key) {
+              setFirebaseRoomKey(res.firebase_room_key);
+            }
+          }
+        }
+      );
+    }
+  }, [targetId, userId]);
+
+  // =============================================================
+  // 🟢 2. مراقبة الـ Presence والتواجد الحي
+  // =============================================================
+  useEffect(() => {
+    if (presenceData?.status === "offline") {
+      const timer = setInterval(() => {
+        setTick((prev) => prev + 1);
+      }, 10000);
+      return () => clearInterval(timer);
+    }
+  }, [presenceData?.status]);
+
+  useEffect(() => {
+    if (!firebaseRoomKey || firebaseRoomKey === "placeholder_room") return;
+
+    const roomRef = doc(db, 'ChatRooms', firebaseRoomKey);
+
+    const unsub = onSnapshot(roomRef, (docSnap) => {
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        const peerData = data.presence?.[userId]; 
+        
+        if (peerData && typeof peerData === 'object') {
+          setPresenceData(peerData);
+        } else {
+          setPresenceData({ status: 'offline', lastSeen: Date.now() });
+        }
+      }
+    });
+
+    c.updateUserPresence("online");
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'hidden') {
+        c.updateUserPresence("offline");
+      } else {
+        c.updateUserPresence("online");
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      c.updateUserPresence("offline");
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      unsub();
+    };
+  }, [firebaseRoomKey, userId]);
+
+  // =============================================================
+  // 🎵 3. منطق تشغيل الريكوردات والصوت
+  // =============================================================
+  const formatTime = (timeInSeconds) => {
+    if (!isFinite(timeInSeconds) || isNaN(timeInSeconds) || timeInSeconds < 0) return "0:00";
+    const minutes = Math.floor(timeInSeconds / 60);
+    const seconds = Math.floor(timeInSeconds % 60);
+    return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+  };
+
+  useEffect(() => {
+    const player = globalAudioPlayer;
+
+    const handleTimeUpdate = () => {
+      if (playingMessageId) {
+        setAudioProgress(player.currentTime);
+        if (!isFinite(player.duration) || player.duration === Infinity) {
+          if (player.seekable && player.seekable.length > 0) {
+            setAudioDuration(player.seekable.end(0));
+          }
+        } else {
+          setAudioDuration(player.duration);
+        }
+      }
+    };
+
+    const handleDurationChange = () => {
+      if (playingMessageId) {
+        if (isFinite(player.duration) && player.duration > 0) {
+          setAudioDuration(player.duration);
+        } else if (player.seekable && player.seekable.length > 0) {
+          setAudioDuration(player.seekable.end(0));
+        }
+      }
+    };
+
+    const handleEnded = () => {
+      setPlayingMessageId('');
+      setAudioProgress(0);
+      setAudioDuration(0);
+    };
+
+    player.addEventListener('timeupdate', handleTimeUpdate);
+    player.addEventListener('durationchange', handleDurationChange);
+    player.addEventListener('ended', handleEnded);
+
+    return () => {
+      player.removeEventListener('timeupdate', handleTimeUpdate);
+      player.removeEventListener('durationchange', handleDurationChange);
+      player.removeEventListener('ended', handleEnded);
+    };
+  }, [playingMessageId]);
+
+  const handlePlayOrPauseAudio = async (e, messageId, fileUrl) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    const safeUrl = fileUrl ? fileUrl.replace(/http:\/\/[0-9.]+:8000/, BACKEND_URL) : '';
+    const player = globalAudioPlayer;
+    
+    if (playingMessageId === messageId) {
+      player.pause();
+      setPlayingMessageId('');
+      return;
+    }
+
+    try {
+      player.pause();
+      player.oncanplaythrough = null; 
+      player.onerror = null;
+      setAudioProgress(0);
+      setAudioDuration(0);
+      setLoadingAudioId(messageId);
+
+      player.onerror = () => {
+        setLoadingAudioId('');
+        setPlayingMessageId('');
+      };
+
+      player.src = safeUrl;
+      player.load(); 
+
+      player.oncanplaythrough = async () => {
+        setLoadingAudioId('');
+        setPlayingMessageId(messageId);
+        try {
+          if (player.seekable && player.seekable.length > 0) {
+            setAudioDuration(player.seekable.end(0));
+          } else if (isFinite(player.duration)) {
+            setAudioDuration(player.duration);
+          }
+          await player.play();
+        } catch (playError) {
+          setPlayingMessageId('');
+        }
+      };
+    } catch (error) {
+      setLoadingAudioId('');
+      setPlayingMessageId('');
+    }
+  };
+
+  // =============================================================
+  // ✉️ 4. منطق الإرسال، التعديل والمزامنة
+  // =============================================================
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [c.messages]);
+
+  const handleStartEdit = (msg) => {
+    setEditingMessage({ id: msg.messageId, text: msg.text });
+    c.setText(msg.text); 
+  };
+
+  const handleCancelEdit = () => {
+    setEditingMessage(null);
+    c.setText("");
+  };
+
+  const handleSendOrUpdate = async () => {
+    if (editingMessage) {
+      if (typeof c.updateMessage === 'function') {
+        await c.updateMessage(editingMessage.id, c.text);
+      }
+      handleCancelEdit();
+    } else {
+      if (!c.text.trim()) return;
+      await c.sendMessage(); 
+    }
+  };
+
+  if (getOrCreateRoomMutation.isLoading || !firebaseRoomKey || c.isRoomLoading) {
+    return (
+      <div className="flex h-full w-full items-center justify-center bg-gray-50 dark:bg-gray-900">
+        <div className="text-center">
+          <Loader2 className="h-8 w-8 animate-spin text-blue-600 mx-auto mb-2" />
+          <p className="text-xs text-gray-500 dark:text-gray-400">جاري تأمين الاتصال بالغرفة...</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex h-full max-h-full w-full flex-col bg-gray-50 text-gray-900 dark:bg-[#0f172a] dark:text-gray-100 overflow-hidden" dir="rtl">
+      
+      {/* الـ Header */}
+      <header className="flex h-16 w-full items-center justify-between border-b border-gray-200 bg-white px-4 shadow-sm dark:border-slate-800 dark:bg-[#1e293b] flex-shrink-0 z-10">
+        <div className="flex items-center gap-3">
+          <button onClick={() => navigate(-1)} className="rounded-full p-1 hover:bg-gray-100 dark:hover:bg-slate-700">
+            <ArrowLeft className="h-6 w-6" />
+          </button>
+          
+          <div className="relative">
+            {avatarUrl && avatarUrl !== "group_placeholder" ? (
+              <img src={avatarUrl} alt={chatName} className="h-10 w-10 rounded-full object-cover" />
+            ) : (
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-teal-500/10 text-teal-500 dark:bg-teal-500/20">
+                <span className="font-bold">{chatName ? chatName[0] : "?"}</span>
+              </div>
+            )}
+            
+            {presenceData?.status === "online" && (
+              <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white bg-green-500 dark:border-gray-900" />
+            )}
+          </div>
+
+          <div>
+            <h2 className="text-sm font-bold max-w-[200px] truncate">{chatName}</h2>
+            <p className="text-xs text-gray-500 dark:text-gray-400">
+              {role} • {c.formatLastSeen(presenceData)}
+            </p>
+          </div>
+        </div>
+      </header>
+
+      {/* منطقة عرض الرسائل المحسّنة الاتجاهات */}
+      <main className="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar bg-transparent">
+        {c.messages && c.messages.length === 0 ? (
+          <div className="flex h-full flex-col items-center justify-center text-gray-400">
+            <p className="text-sm">لا توجد رسائل سابقة في الغرفة.</p>
+          </div>
+        ) : (
+          c.messages && [...c.messages].reverse().map((msg) => {
+            const isMe = String(msg.senderId) === String(userId); 
+            const isDeleted = msg.type === 'deleted';
+            const safeFileUrl = msg.fileUrl ? msg.fileUrl.replace(/http:\/\/[0-9.]+:8000/, BACKEND_URL) : '';
+
+            return (
+              /* ✨ التعديل السحري هنا: بما أن التوجيه dir="rtl"، فإن justify-start تعني اليمين و justify-end تعني اليسار */
+              <div key={msg.messageId} className={`flex items-center gap-1 relative group ${isMe ? 'justify-start' : 'justify-end'}`}>
+                
+                {/* أزرار التعديل والحذف للرسائل الخاصة بي (تظهر عند الحوم) */}
+                {isMe && !isDeleted && (
+                  <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-150 flex items-center gap-1 mx-2 z-10 order-last">
+                    {msg.type === 'text' && (
+                      <button onClick={() => handleStartEdit(msg)} className="p-1 rounded-full text-gray-400 hover:text-blue-500 hover:bg-slate-200 dark:hover:bg-slate-800">
+                        <Edit2 className="h-3.5 w-3.5" />
+                      </button>
+                    )}
+                    <button onClick={() => { if (typeof c.deleteMessage === 'function') c.deleteMessage(msg.messageId); }} className="p-1 rounded-full text-gray-400 hover:text-red-500 hover:bg-slate-200 dark:hover:bg-slate-800">
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                )}
+                
+                {/* تصميم الفقاعة (البابل) ولونها حسب المُرسِل */}
+                <div className={`max-w-[70%] rounded-2xl px-4 py-2 shadow-sm relative
+                  ${isDeleted ? 'bg-slate-100 dark:bg-slate-800 text-gray-400 italic rounded-lg border border-slate-200 dark:border-slate-700' 
+                             : isMe ? 'bg-blue-600 text-white rounded-tr-sm' : 'bg-[#1e293b] text-gray-100 rounded-tl-sm'}`}
+                >
+                  {isDeleted && <p className="text-sm leading-relaxed">🚫 {msg.text}</p>}
+                  {!isDeleted && msg.type === 'text' && <p className="text-sm leading-relaxed whitespace-pre-wrap">{msg.text}</p>}
+                  
+                  {/* عرض الصور */}
+                  {!isDeleted && msg.type === 'image' && msg.fileUrl && (
+                    <div className="overflow-hidden rounded-lg cursor-pointer mt-1">
+                      <img src={safeFileUrl} alt="المرفق" className="max-h-60 w-full object-cover hover:scale-105 transition-transform" />
+                    </div>
+                  )}
+                  
+                  {/* عرض الملفات */}
+                  {!isDeleted && msg.type === 'file' && msg.fileUrl && (
+                    <a href={safeFileUrl} target="_blank" rel="noreferrer" className="flex items-center gap-2 p-2 rounded bg-gray-50 dark:bg-slate-800 text-xs font-semibold mt-1">
+                      <FileText className="h-8 w-8 text-red-500" />
+                      <div className="truncate max-w-[150px]">
+                        <p className="truncate text-gray-700 dark:text-gray-200">{msg.text || "ملف مستند"}</p>
+                        <span className="text-[10px] text-gray-400">انقر للفتح</span>
+                      </div>
+                    </a>
+                  )}
+                  
+                  {/* تشغيل وعرض الريكوردات الصوتية */}
+                  {!isDeleted && msg.type === 'audio' && msg.fileUrl && (
+                    <div className="flex items-center gap-3 w-56 p-1 mt-1 text-gray-800 dark:text-gray-100" onClick={(e) => e.stopPropagation()}>
+                      <button type="button" onClick={(e) => handlePlayOrPauseAudio(e, msg.messageId, msg.fileUrl)} className="flex h-8 w-8 min-w-[32px] items-center justify-center rounded-full bg-white text-blue-600 shadow hover:bg-gray-100 transition z-20" disabled={loadingAudioId === msg.messageId}>
+                        {loadingAudioId === msg.messageId ? <Loader2 className="h-4 w-4 animate-spin text-blue-600" /> : playingMessageId === msg.messageId ? <Pause className="h-4 w-4 text-blue-600" /> : <Play className="h-4 w-4 text-blue-600 fill-current" />}
+                      </button>
+                      <div className="flex-1">
+                        <input type="range" min="0" step="0.01" max={playingMessageId === msg.messageId && isFinite(audioDuration) && audioDuration > 0 ? audioDuration : 100} value={playingMessageId === msg.messageId ? audioProgress : 0} onChange={(e) => { if (playingMessageId === msg.messageId) { const newTime = parseFloat(e.target.value); globalAudioPlayer.currentTime = newTime; setAudioProgress(newTime); }}} className="w-full h-1 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-500" />
+                        <span className={`text-[10px] ${isMe ? 'text-blue-100' : 'text-gray-400'}`}>
+                          {loadingAudioId === msg.messageId ? "جاري التحميل..." : playingMessageId === msg.messageId ? `${formatTime(audioProgress)} / ${formatTime(audioDuration)}` : "🎤 تسجيل صوتي"}
+                        </span>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* التوقيت وحالة القراءة */}
+                  <div className={`flex items-center justify-end gap-1 mt-1 text-[10px] ${isMe ? 'text-blue-200' : 'text-gray-400'}`}>
+                    {msg.isEdited && !isDeleted && <span className="opacity-80 scale-90 text-blue-300 font-semibold">(معدلة)</span>}
+                    <span>{msg.timestamp ? format(msg.timestamp, 'hh:mm a') : ''}</span>
+                    {isMe && (<span>{msg.status === 'read' ? <CheckCheck className="h-3 w-3 text-cyan-300" /> : <Check className="h-3 w-3" />}</span>)}
+                  </div>
+                </div>
+              </div>
+            );
+          })
+        )}
+        <div ref={messagesEndRef} />
+      </main>
+
+      {/* مؤشر التعديل */}
+      {editingMessage && (
+        <div className="w-full bg-yellow-500/10 border-t border-yellow-500/20 px-4 py-1.5 flex items-center justify-between text-xs text-yellow-600 dark:text-yellow-400 flex-shrink-0">
+          <div className="flex items-center gap-2 truncate max-w-[80%]">
+            <Edit2 className="h-3.5 w-3.5" />
+            <span className="font-semibold">جاري التعديل:</span>
+            <span className="truncate italic text-gray-400">"{editingMessage.text}"</span>
+          </div>
+          <button onClick={handleCancelEdit} className="p-1 rounded-full hover:bg-slate-700 text-gray-400 hover:text-gray-200">
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+      )}
+
+      {/* مؤشر الرفع المتزامن */}
+      {(c.isUploading || storeMessageMutation.isLoading) && (
+        <div className="w-full bg-blue-100 dark:bg-blue-900 p-1 text-center text-xs font-semibold text-blue-600 animate-pulse flex-shrink-0">
+          جاري المزامنة والرفع...
+        </div>
+      )}
+
+      {/* الـ Footer */}
+      <footer className="p-3 bg-white border-t border-gray-200 dark:bg-[#1e293b] dark:border-slate-800 flex-shrink-0">
+        <div className="flex items-center gap-2 max-w-4xl mx-auto">
+          <div className="flex flex-1 items-center gap-2 rounded-full bg-gray-100 px-3 py-1.5 dark:bg-slate-800">
+            <label className="cursor-pointer p-1 text-gray-500 hover:text-gray-700 dark:text-gray-400">
+              <Paperclip className="h-5 w-5" />
+              <input type="file" className="hidden" onChange={(e) => e.target.files[0] && c.uploadFileAndSend(e.target.files[0], 'file', '')} />
+            </label>
+            <label className="cursor-pointer p-1 text-gray-500 hover:text-gray-700 dark:text-gray-400">
+              <Camera className="h-5 w-5" />
+              <input type="file" accept="image/*" className="hidden" onChange={(e) => e.target.files[0] && c.uploadFileAndSend(e.target.files[0], 'image', 'أرسل صورة')} />
+            </label>
+            {c.isRecording ? (
+              <div className="flex-1 text-sm text-red-500 font-bold animate-pulse px-2">🔴 جاري تسجيل الصوت...</div>
+            ) : (
+              <input type="text" value={c.text} onChange={(e) => c.setText(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSendOrUpdate()} placeholder="اكتب رسالتك هنا..." className="flex-1 bg-transparent text-sm outline-none border-none focus:ring-0 text-gray-950 dark:text-gray-50" />
+            )}
+          </div>
+          {c.text.trim().length > 0 ? (
+            <button onClick={handleSendOrUpdate} className="flex h-10 w-10 min-w-[40px] items-center justify-center rounded-full bg-blue-600 text-white shadow hover:bg-blue-700 transition">
+              <Send className="h-5 w-5" style={{ transform: 'scaleX(-1)' }} />
+            </button>
+          ) : (
+            <button disabled={!!editingMessage} onClick={c.isRecording ? c.stopAudioRecording : c.startAudioRecording} className={`flex h-10 w-10 min-w-[40px] items-center justify-center rounded-full text-white shadow transition ${c.isRecording ? 'bg-red-500 hover:bg-red-600' : 'bg-blue-600 hover:bg-blue-700'}`}>
+              {c.isRecording ? <Square className="h-5 w-5 fill-current" /> : <Mic className="h-5 w-5" />}
+            </button>
+          )}
+        </div>
+      </footer>
+    </div>
+  );
+}

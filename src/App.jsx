@@ -1,111 +1,117 @@
+
+// // src/App.jsx
+// import "./App.css";
+// import { useEffect, useRef } from "react"; 
+// import { Route, Routes } from "react-router-dom";
+// import { useSelector } from "react-redux";
+// import axios from "axios";
+
+// import MainPage from "./pages/MainPage";
+// import LoginPage from "./pages/Login/LoginPage";
+// import { applyThemeMode } from "./app/theme";
+// import { messaging, requestForToken } from "./firebase"; 
+// import { onMessage } from "firebase/messaging";
+
+// function App() {
+//   const darkMode = useSelector((state) => state.ui.darkMode);
+//   const isTokenProcessed = useRef(false);
+
+//   useEffect(() => {
+//     applyThemeMode(darkMode);
+//   }, [darkMode]);
+
+//   const sendTokenToBackend = async (fcmToken) => {
+//     try {
+//       const response = await axios.post('http://10.113.180.45:8000/api/update-fcm-token', {
+//         fcm_token: fcmToken,
+//         user_id: 1 
+//       });
+//       console.log("✅ استجابة السيرفر:", response.data);
+//     } catch (error) {
+//       console.error("❌ فشل التحديث:", error.message);
+//     }
+//   };
+
+//   useEffect(() => {
+//     // التأكد من أن المعالجة تتم مرة واحدة فقط
+//     if (isTokenProcessed.current) return;
+
+//     const setupFCM = async () => {
+//       // نتحقق من الصلاحيات قبل طلب التوكن
+//       if (Notification.permission === "granted" || Notification.permission === "default") {
+//         const token = await requestForToken();
+//         if (token && !isTokenProcessed.current) {
+//           await sendTokenToBackend(token);
+//           isTokenProcessed.current = true;
+//         }
+//       }
+//     };
+
+//     setupFCM();
+
+//     const unsubscribe = onMessage(messaging, (payload) => {
+//       console.log("🔔 تم استلام البيانات في المقدمة:", payload);
+//       // ملاحظة: لا تضع كود عرض إشعار هنا لمنع التكرار مع الـ Service Worker
+//     });
+
+//     return () => {
+//       if (unsubscribe) unsubscribe();
+//     };
+//   }, []);
+
+//   return (
+//     <div className="App">
+//       <Routes>
+//         <Route path="/" element={<LoginPage />} />
+//         <Route path="/main-page/*" element={<MainPage />} />
+//       </Routes>
+//     </div>
+//   );
+// }
+
+// export default App;
+
+
+
+
+
 import "./App.css";
-import { useState, useEffect } from "react";
+import React, { useEffect, useRef } from "react"; 
 import { Route, Routes } from "react-router-dom";
 import { useSelector } from "react-redux";
 
-// استيراد المكونات والصفحات
 import MainPage from "./pages/MainPage";
 import LoginPage from "./pages/Login/LoginPage";
-import ForgotPasswordPage from "./pages/Login/ForgotPasswordPage";
-import VerifyResetCodePage from "./pages/Login/VerifyResetCodePage";
-import NewPasswordPage from "./pages/Login/NewPasswordPage";
 import { applyThemeMode } from "./app/theme";
-
-// استيراد أدوات Firebase
-import { messaging, requestForToken } from "./firebase"; 
-import { onMessage } from "firebase/messaging";
-import axios from "axios"; // أضف هذا السطر في الأعلى
-// لم نعد بحاجة لاستيراد مكونات Snackbar و Alert من MUI
+import notificationService from "./app/services/notificationChatService"; // 💡 استدعاء السيرفس الموحد الخاص بك
 
 function App() {
   const darkMode = useSelector((state) => state.ui.darkMode);
+  const isTokenProcessed = useRef(false);
 
-  // حذفنا حالات الـ Snackbar القديمة (openNotification, notification)
-
-  // 1. تطبيق الثيم (Dark/Light)
+  // 1. تطبيق الوضع الليلي / العادي عند تغيره في الـ Redux
   useEffect(() => {
     applyThemeMode(darkMode);
   }, [darkMode]);
 
-  // 2. إعداد مستمع الإشعارات (Foreground) - النسخة الاحترافية
-  // useEffect(() => {
-  //   // جلب التوكن عند بداية تشغيل التطبيق
-  //   requestForToken();
+  // 2. إدارة منطق إشعارات الفايربيس (FCM) من خلال السيرفس المدمج
+  useEffect(() => {
+    // 🔔 تشغيل إعداد الفايربيس، جلب التوكن، وتحديثه في السيرفر تلقائياً
+    notificationService.initializeFCM(isTokenProcessed);
 
-  //   // الاستماع الدائم للإشعارات في المقدمة
-  //   const unsubscribe = onMessage(messaging, (payload) => {
-  //     console.log("✅ وصل إشعار خلف الكواليس:", payload);
-      
-  //     // السر هنا: نجبر المتصفح على عرض "إشعار نظام حقيقي" (System Notification)
-  //     // حتى لو كان الموقع مفتوحاً ونشطاً أمام المستخدم.
-      
-  //     if (Notification.permission === "granted") {
-  //       // إنشاء وإظهار الإشعار المرئي من المتصفح
-  //       const notification = new Notification(payload.notification.title, {
-  //         body: payload.notification.body,
-  //         icon: "/favicon.svg", // تأكد أن هذا الملف موجود في مجلد public
-  //         badge: "/favicon.svg", // للأندرويد
-  //         vibrate: [200, 100, 200], // نمط الهز للموبايل
-  //         requireInteraction: true // يبقى ظاهرًا حتى يتفاعل معه المستخدم
-  //       });
+    // 📩 بدء الاستماع للإشعارات والرسائل القادمة والتطبيق مفتوح (Foreground)
+    const unsubscribe = notificationService.listenToForegroundMessages();
 
-  //       // تعريف ماذا يحدث عند الضغط على هذا الإشعار (داخل التطبيق)
-  //       notification.onclick = (event) => {
-  //         event.preventDefault(); // منع السلوك الافتراضي للمتصفح
-  //         window.focus(); // التركيز على نافذة التطبيق
-          
-  //         // هنا يمكنك إضافة كود للتوجيه لصفحة معينة داخل التطبيق
-  //         // مثال: useNavigate('/main-page/appointments');
-  //         console.log("تم الضغط على الإشعار من داخل التطبيق مفتوحاً");
-  //         notification.close(); // إغلاق الإشعار بعد الضغط
-  //       };
-  //     }
-  //   });
-
-  //   return () => {
-  //     if (unsubscribe) unsubscribe(); // تنظيف المستمع عند إغلاق التطبيق
-  //   };
-  // }, []);
-// داخل useEffect في App.jsx
-
-useEffect(() => {
-  requestForToken().then((token) => {
-    if (token) {
-      // إرسال التوكن إلى الباك-إند فور الحصول عليه
-      sendTokenToBackend(token);
-    }
-  });
-}, []);
-
-
-const sendTokenToBackend = async (fcmToken) => {
-  try {
-    // تأكد من أن الرابط يطابق المسار في ملف api.php في لارافيل
-    const response = await axios.post('http://172.19.24.45:8000/api/update-fcm-token', {
-      fcm_token: fcmToken,
-      user_id: 1 // يمكنك تمرير ID المستخدم الحقيقي هنا
-    });
-    console.log("✅ تم حفظ التوكن في السيرفر:", response.data);
-  } catch (error) {
-    console.error("❌ فشل إرسال التوكن للسيرفر:", error.message);
-  }
-};
+    // تنظيف المستمع عند مغادرة المكون لمنع تكرار العمليات ومشاكل الذاكرة
+    return () => {
+      if (unsubscribe) unsubscribe();
+    };
+  }, []);
 
   return (
     <div className="App">
-      {/* حذفنا مكون الـ Snackbar من هنا */}
-
       <Routes>
         <Route path="/" element={<LoginPage />} />
-        <Route path="/reset-password" element={<ForgotPasswordPage />} />
-        <Route
-          path="/reset-password/verify"
-          element={<VerifyResetCodePage />}
-        />
-        <Route
-          path="/reset-password/new-password"
-          element={<NewPasswordPage />}
-        />
         <Route path="/main-page/*" element={<MainPage />} />
       </Routes>
     </div>

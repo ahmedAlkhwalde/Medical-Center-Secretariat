@@ -23,6 +23,7 @@ import LocalHospitalIcon from '@mui/icons-material/LocalHospital'; // للعيا
 import SupportAgentIcon from '@mui/icons-material/SupportAgent'; // للسكرتاريا
 import FolderSharedIcon from '@mui/icons-material/FolderShared'; // لسجل المرضى
 import MapOutlinedIcon from '@mui/icons-material/MapOutlined'; // للخريطة
+import ChatIcon from '@mui/icons-material/Chat';
 
 const navItems = [
   {
@@ -42,6 +43,12 @@ const navItems = [
     name: "الحجوزات",
     icon: <FolderSharedIcon />,
     path: "/main-page/appointments",
+  },
+  {
+    id: 4,
+    name: "محادثات",
+    icon: <ChatIcon />,
+    path: "/main-page/conversations",
   },
 ];
 

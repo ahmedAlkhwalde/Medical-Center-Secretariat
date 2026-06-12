@@ -1,103 +1,36 @@
-
-// // src/App.jsx
-// import "./App.css";
-// import { useEffect, useRef } from "react"; 
-// import { Route, Routes } from "react-router-dom";
-// import { useSelector } from "react-redux";
-// import axios from "axios";
-
-// import MainPage from "./pages/MainPage";
-// import LoginPage from "./pages/Login/LoginPage";
-// import { applyThemeMode } from "./app/theme";
-// import { messaging, requestForToken } from "./firebase"; 
-// import { onMessage } from "firebase/messaging";
-
-// function App() {
-//   const darkMode = useSelector((state) => state.ui.darkMode);
-//   const isTokenProcessed = useRef(false);
-
-//   useEffect(() => {
-//     applyThemeMode(darkMode);
-//   }, [darkMode]);
-
-//   const sendTokenToBackend = async (fcmToken) => {
-//     try {
-//       const response = await axios.post('http://10.113.180.45:8000/api/update-fcm-token', {
-//         fcm_token: fcmToken,
-//         user_id: 1 
-//       });
-//       console.log("✅ استجابة السيرفر:", response.data);
-//     } catch (error) {
-//       console.error("❌ فشل التحديث:", error.message);
-//     }
-//   };
-
-//   useEffect(() => {
-//     // التأكد من أن المعالجة تتم مرة واحدة فقط
-//     if (isTokenProcessed.current) return;
-
-//     const setupFCM = async () => {
-//       // نتحقق من الصلاحيات قبل طلب التوكن
-//       if (Notification.permission === "granted" || Notification.permission === "default") {
-//         const token = await requestForToken();
-//         if (token && !isTokenProcessed.current) {
-//           await sendTokenToBackend(token);
-//           isTokenProcessed.current = true;
-//         }
-//       }
-//     };
-
-//     setupFCM();
-
-//     const unsubscribe = onMessage(messaging, (payload) => {
-//       console.log("🔔 تم استلام البيانات في المقدمة:", payload);
-//       // ملاحظة: لا تضع كود عرض إشعار هنا لمنع التكرار مع الـ Service Worker
-//     });
-
-//     return () => {
-//       if (unsubscribe) unsubscribe();
-//     };
-//   }, []);
-
-//   return (
-//     <div className="App">
-//       <Routes>
-//         <Route path="/" element={<LoginPage />} />
-//         <Route path="/main-page/*" element={<MainPage />} />
-//       </Routes>
-//     </div>
-//   );
-// }
-
-// export default App;
-
-
-
-
-
 import "./App.css";
 import React, { useEffect, useRef } from "react"; 
-import { Route, Routes } from "react-router-dom";
-import { useSelector } from "react-redux";
+import { Route, Routes, Navigate } from "react-router-dom";
+import { useSelector, useDispatch } from "react-redux";
 
 import MainPage from "./pages/MainPage";
 import LoginPage from "./pages/Login/LoginPage";
+import ForgotPasswordPage from "./pages/Login/ForgotPasswordPage";
+import VerifyResetCodePage from "./pages/Login/VerifyResetCodePage";
+import NewPasswordPage from "./pages/Login/NewPasswordPage";
+
 import { applyThemeMode } from "./app/theme";
-import notificationService from "./app/services/notificationChatService"; // 💡 استدعاء السيرفس الموحد الخاص بك
-import NotificationPage from "./pages/notification/NotificationPage"
+import notificationService from "./app/services/notificationChatService"; // 💡 سيرفس الإشعارات الخاص بك
+import AppSnackbar from "./components/AppSnackbar";
+import { hideSnackbar } from "./features/uiSlice";
 
 function App() {
+  // تجميع الـ Hooks والحالة من الطرفين
   const darkMode = useSelector((state) => state.ui.darkMode);
-  const isTokenProcessed = useRef(false);
+  const token = useSelector((state) => state.auth.token);
+  const snackbar = useSelector((state) => state.ui.snackbar);
+  const dispatch = useDispatch();
+  
+  const isAuthed = Boolean(token);
+  const isTokenProcessed = useRef(false); // 💡 ريف الإشعارات الخاص بك
 
   // 1. تطبيق الوضع الليلي / العادي عند تغيره في الـ Redux
   useEffect(() => {
     applyThemeMode(darkMode);
   }, [darkMode]);
 
-  // 2. إدارة منطق إشعارات الفايربيس (FCM) من خلال السيرفس المدمج
+  // 2. إدارة منطق إشعارات الفايربيس (FCM) من خلال السيرفس المدمج (شغلك)
   useEffect(() => {
-    // 🔔 تشغيل إعداد الفايربيس، جلب التوكن، وتحديثه في السيرفر تلقائياً
     notificationService.initializeFCM(isTokenProcessed);
 
     // 📩 بدء الاستماع للإشعارات والرسائل القادمة والتطبيق مفتوح (Foreground)
@@ -112,10 +45,40 @@ function App() {
   return (
     <div className="App">
       <Routes>
-        <Route path="/" element={<LoginPage />} />
-        <Route path="/main-page/*" element={<MainPage />} />
-        <Route path="/main-page/notifications" element={<NotificationPage />} />
+        {/* صفحة تسجيل الدخول المحمية */}
+        <Route
+          path="/"
+          element={
+            isAuthed ? <Navigate to="/main-page" replace /> : <LoginPage />
+          }
+        />
+        
+        {/* صفحات استعادة كلمة المرور الثلاثة */}
+        <Route path="/reset-password" element={<ForgotPasswordPage />} />
+        <Route
+          path="/reset-password/verify"
+          element={<VerifyResetCodePage />}
+        />
+        <Route
+          path="/reset-password/new-password"
+          element={<NewPasswordPage />}
+        />
+        
+        {/* لوحة التحكم الرئيسية المحمية بحالة تسجيل الدخول */}
+        <Route
+          path="/main-page/*"
+          element={isAuthed ? <MainPage /> : <Navigate to="/" replace />}
+        />
       </Routes>
+
+      {/* مكون التنبيهات العام السفلي */}
+      <AppSnackbar
+        open={snackbar.open}
+        message={snackbar.message}
+        variant={snackbar.variant}
+        duration={snackbar.duration}
+        onClose={() => dispatch(hideSnackbar())}
+      />
     </div>
   );
 }

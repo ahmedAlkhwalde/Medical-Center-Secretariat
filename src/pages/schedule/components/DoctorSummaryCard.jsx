@@ -2,7 +2,7 @@ import { DeleteOutline, Edit } from "@mui/icons-material";
 import { getShiftCount } from "../scheduleFormatters";
 
 const DoctorSummaryCard = ({ item, onEdit, onDelete }) => (
-  <div className="flex h-full flex-col rounded-3xl border theme-border theme-surface p-4 shadow-sm">
+  <div className="flex h-full flex-col w-full rounded-3xl border theme-border theme-surface p-4 shadow-sm">
     <div className="flex items-start gap-3">
       <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl theme-accent text-sm font-black text-white shadow-lg">
         {item.doctor.name

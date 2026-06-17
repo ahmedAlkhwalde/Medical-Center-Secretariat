@@ -2,9 +2,11 @@ import { Routes, Route } from "react-router-dom";
 import Layout from "../components/Layout";
 import SchedulePage from "./schedule/SchedulePage";
 import PatientsRecordsPage from "./patients/PatientsRecordsPage";
-import BookingModal from "../pages/appointment/appointmentPage";
+import AppointmentsPage from "../pages/appointment/AppointmentsPage";
 import ChatList from "../pages/conversation/ChatList";
 import Conversation from "../pages/conversation/Conversation"; 
+import NotificationPage from "../pages/notification/NotificationPage";
+import ProfilePage from "../pages/profile/ProfilePage";
 
 export default function MainPage() {
   return (
@@ -13,13 +15,14 @@ export default function MainPage() {
         <Routes>
           <Route path="schedule" element={<SchedulePage />} />
           <Route path="patients-records" element={<PatientsRecordsPage />} />
-          <Route path="appointments" element={<BookingModal />} />
-          <Route path="conversations" element={<ChatList isDark={true} />} />
+          <Route path="appointments" element={<AppointmentsPage />} />
+          <Route path="notifications" element={<NotificationPage />} />
+          <Route path="conversations" element={<ChatList />} />
           <Route path="conversations/view/:id" element={<Conversation />} />
-          <Route index element={<BookingModal />} />
-          <Route path="appointments" element={<BookingModal />} />
+          <Route index element={<AppointmentsPage />} />
           <Route path="schedule" element={<SchedulePage />} />
           <Route path="patients-records" element={<PatientsRecordsPage />} />
+          <Route path="profile" element={<ProfilePage />} />
           {/* <Route path="dashboard" element={<DashboardPage />} />
           <Route path="schedule" element={<SchedulePage />} />
           <Route path="specialties" element={<SpecialtiesPage />} />

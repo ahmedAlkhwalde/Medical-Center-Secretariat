@@ -1,62 +1,24 @@
+@import url('https://fonts.googleapis.com/css2?family=Almarai:wght@300;400;700;800&display=swap');
 @import "tailwindcss";
 
 @custom-variant dark (&:where(.dark, .dark *));
 
-/* :root {
-    --color-primary: #F8F9FA;     
-    --color-secondary: #FFFFFF; 
-    --color-accent: #2563EB;    
-    --color-accent: #2563EB;   
-    --color-text: #1E3A8A;      
-    --color-grey: #64748B;   
-    --color-border: #E2E8F0;       
-    --color-danger: #EF4444;    
-    --color-on-accent: var(--color-secondary);
-    --color-accent-soft: color-mix(in srgb, var(--color-accent) 12%, transparent);
-    --color-accent-strong: color-mix(in srgb, var(--color-accent) 85%, var(--color-primary));
-    --color-surface-90: color-mix(in srgb, var(--color-secondary) 90%, transparent);
-    --color-surface-hover: color-mix(in srgb, var(--color-secondary) 85%, var(--color-primary));
-    --color-danger-soft: color-mix(in srgb, var(--color-danger) 12%, transparent);
-    --color-overlay: color-mix(in srgb, var(--color-text) 40%, transparent);
-    --color-shadow-accent: color-mix(in srgb, var(--color-accent) 30%, transparent);
-    --main-gradient: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, var(--color-overlay) 100%);
-    --font-family: 'Almarai', sans-serif;
-}
-
-.dark {
-    --color-primary: #1F1F1F;    
-    --color-secondary: #181818;  
-    --color-accent: #3B82F6;    
-    --color-text: #F1F5F9;     
-    --color-grey: #94A3B8;    
-    --color-border: color-mix(in srgb, var(--color-secondary) 70%, var(--color-primary));
-    --color-on-accent: var(--color-text);
-    --color-accent-strong: color-mix(in srgb, var(--color-accent) 70%, var(--color-primary));
-    --color-overlay: color-mix(in srgb, var(--color-primary) 60%, transparent);
-    --color-shadow-accent: color-mix(in srgb, var(--color-accent) 35%, transparent);
-} */
-
-
 :root {
-    /* ================= LIGHT MODE ================= */
-    --color-primary: #F6FEFF;      /* Background: lightBackground */
-    --color-secondary: #FFFFFF;    /* Surface: lightSurface */
+    --color-primary: #F6FEFF;
+    --color-secondary: #FFFFFF;
     
-    /* Brand Colors */
-    --color-accent: #0AB3BA;       /* primaryTeal */
-    --color-accent-secondary: #F28A4C; /* accentOrange */
+    --color-accent: #0AB3BA;    
+    --color-accent-secondary: #F28A4C;
     
-    --color-text: #0F172A;         /* lightTextPrimary */
-    --color-grey: #475569;         /* lightTextSecondary */
-    --color-border: #E2E8F0;       /* lightBorder */
+    --color-text: #0F172A;
+    --color-grey: #475569;
+    --color-border: #E2E8F0;
     
-    /* Status */
     --color-success: #22C55E;
     --color-warning: #F59E0B;
-    --color-danger: #EF4444;       /* error */
+    --color-danger: #EF4444;
     --color-info: #3B82F6;
 
-    /* Derived Colors (متغيرات مشتقة للتفاعلات) */
     --color-on-accent: #FFFFFF;
     --color-accent-soft: color-mix(in srgb, var(--color-accent) 12%, transparent);
     --color-accent-strong: color-mix(in srgb, var(--color-accent) 85%, var(--color-primary));
@@ -67,22 +29,19 @@
     --color-shadow-accent: color-mix(in srgb, var(--color-accent) 20%, transparent);
     
     --main-gradient: linear-gradient(135deg, var(--color-accent) 0%, #09B2B9 100%);
-    --font-family: 'Almarai', sans-serif;
+    --font-family: 'Almarai', 'Tahoma', 'Arial', sans-serif;
 }
 
 .dark {
-    /* ================= DARK MODE ================= */
-    --color-primary: #0F172A;      /* darkBackground */
-    --color-secondary: #1E293B;    /* darkSurface */
+    --color-primary: #0F172A;
+    --color-secondary: #1E293B;
     
-    /* نستخدم الـ Teal الأصلي مع زيادة السطوع قليلاً في الداكن إذا لزم الأمر */
     --color-accent: #0AB3BA;       
     
-    --color-text: #F8FAFC;         /* darkTextPrimary */
-    --color-grey: #CBD5E1;         /* darkTextSecondary */
-    --color-border: #334155;       /* darkBorder */
+    --color-text: #F8FAFC;
+    --color-grey: #CBD5E1;
+    --color-border: #334155;
     
-    /* Derived Colors (Dark Mode) */
     --color-on-accent: #0F172A;
     --color-accent-strong: color-mix(in srgb, var(--color-accent) 70%, var(--color-primary));
     --color-overlay: color-mix(in srgb, var(--color-primary) 60%, transparent);
@@ -289,7 +248,6 @@ input[type=number] {
     background: transparent;
 }
 
-/* Ensure form controls follow theme colors (selects, options, inputs, textareas) */
 select,
 textarea,
 input,
@@ -307,7 +265,6 @@ optgroup {
     color: var(--color-text);
 }
 
-/* Style option backgrounds where the browser allows it */
 select option,
 select optgroup {
     background-color: var(--color-secondary);
@@ -318,14 +275,12 @@ option:disabled {
     color: var(--color-grey);
 }
 
-/* Global placeholder color to match theme */
 input::placeholder,
 textarea::placeholder {
     color: var(--color-grey);
     opacity: 1;
 }
 
-/* Try to override native select appearance so our colors apply better */
 select {
     -webkit-appearance: none;
     -moz-appearance: none;
@@ -333,12 +288,10 @@ select {
     background-image: none;
 }
 
-/* Hide default arrow on IE/Edge */
 select::-ms-expand {
     display: none;
 }
 
-/* Dark-mode explicit rules for selects/options */
 .dark select,
 .dark select option,
 .dark select optgroup {
@@ -346,37 +299,29 @@ select::-ms-expand {
     color: var(--color-text) !important;
 }
 
-/* Fallback: when browser ignores option styling, force parent surface color */
 .dark .theme-surface {
     background-color: var(--color-secondary) !important;
 }
 
-/* ================= CHAT LAYOUT FIXES ================= */
 
-/* الحاوية الرئيسية التي تجمع الهيدر والرسائل وصندوق الإدخال */
 .chat-layout-wrapper {
     display: flex !important;
     flex-direction: column !important;
-    height: 100vh !important; /* تأخذ كامل ارتفاع الشاشة المتاحة */
-    overflow: hidden !important; /* تمنع ظهور سكرول خارجي غريب */
+    height: 100vh !important;
+    overflow: hidden !important;
 }
 
-/* الـ AppBar (الهيدر العلوية) */
 .chat-header-fixed {
-    flex-shrink: 0 !important; /* 💡 الحل السحري: تمنع الرسائل المقلوبة من ضغط الهيدر أو إخفائه */
-    z-index: 50 !important;    /* يضمن بقاء الهيدر كطبقة علوية فوق الرسائل المتصاعدة */
+    flex-shrink: 0 !important;
+    z-index: 50 !important;
 }
 
-/* حاوية الرسائل التي تحتوي على السكرول و خاصية العكس */
 .chat-messages-scroll-area {
     display: flex !important;
-    flex-direction: column-reverse !important; /* لعكس القائمة وتبدأ من الأسفل */
-    flex: 1 !important;         /* يجبر القائمة على استهلاك المساحة المتبقية فقط */
-    overflow-y: auto !important; /* حصر السكرول هنا فقط داخل منطقة الرسائل */
+    flex: 1 !important;       
+    overflow-y: auto !important; 
 }
 
-/* شريط الإدخال السفلي */
 .chat-input-fixed {
-    flex-shrink: 0 !important; /* تمنع اختفاء صندوق الكتابة عند كثرة الرسائل */
+    flex-shrink: 0 !important; 
 }
-

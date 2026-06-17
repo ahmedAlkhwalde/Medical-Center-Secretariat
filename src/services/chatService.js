@@ -157,7 +157,7 @@
 
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import apiClient from "../../config/apiClient";
+import apiClient from "../config/apiClient";
 
 // مفاتيح الكاش (Query Keys)
 export const CHAT_KEYS = {

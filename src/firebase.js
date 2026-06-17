@@ -303,19 +303,17 @@
 
 
 
-
 import { initializeApp } from "firebase/app";
 import { getMessaging, getToken, onMessage } from "firebase/messaging";
 import { useState, useEffect, useRef } from 'react';
 import { 
   getFirestore, collection, doc, onSnapshot, 
   orderBy, query, writeBatch, addDoc, serverTimestamp,
-  updateDoc, deleteDoc 
+  updateDoc, deleteDoc, setDoc
 } from 'firebase/firestore';
 import { getAuth, signInAnonymously } from 'firebase/auth';
 import { format } from 'date-fns';
-// import apiClient from "./config/apiClient";
-import chatService from "./app/services/chatService"; 
+import chatService from "./services/chatService"; 
 
 const firebaseConfig = {
   apiKey: "AIzaSyDC_PG6WCHGZpxFlQTRnysaivEI_szYslg",
@@ -334,19 +332,15 @@ export const messaging = getMessaging(app);
 export const requestForToken = async () => {
   try {
     if (!('serviceWorker' in navigator)) return null;
-
     const currentToken = await getToken(messaging, {
       vapidKey: "BOEPAyLu2aTAFd11s10SqIaZrxH4Trja5BXy9srigPG6B6_G3rLnVQ11jIB7QnhZBo0EQimotSVhDBevd8sb-r0"
     });
-
     if (currentToken) {
       console.log("✅ Web Token الحجز جاهز:", currentToken);
       return currentToken;
     } else {
       const permission = await Notification.requestPermission();
-      if (permission === 'granted') {
-        return await requestForToken();
-      }
+      if (permission === 'granted') return await requestForToken();
     }
   } catch (err) {
     console.log("❌ خطأ أثناء جلب التوكن:", err);
@@ -356,11 +350,8 @@ export const requestForToken = async () => {
 
 export const onMessageListener = () =>
   new Promise((resolve) => {
-    onMessage(messaging, (payload) => {
-      resolve(payload);
-    });
+    onMessage(messaging, (payload) => { resolve(payload); });
   });
-
 
 export const useChatController = (roomKey, myUserId) => {
   const [messages, setMessages] = useState([]);
@@ -368,8 +359,13 @@ export const useChatController = (roomKey, myUserId) => {
   const [isUploading, setIsUploading] = useState(false);
   const [isRoomLoading, setIsRoomLoading] = useState(true);
   
+  // حالة مراقبة حضور الطرف الآخر المحدثة
+  const [peerPresence, setPeerPresence] = useState(null);
+  
   const chatRoomId = roomKey && roomKey !== "placeholder_room" ? roomKey : "doctor_patient_123";
-  const currentUserId = myUserId ? String(myUserId) : "1";
+  
+  // صياغة المعرف الخاص بي ليكون متوافقاً مع الفلاتر (مثال: user_7 أو user_1)
+  const currentUserId = myUserId ? (String(myUserId).startsWith("user_") ? String(myUserId) : `user_${myUserId}`) : "user_1";
 
   const [isRecording, setIsRecording] = useState(false);
   const mediaRecorderRef = useRef(null);
@@ -381,35 +377,68 @@ export const useChatController = (roomKey, myUserId) => {
   const audioPlayerRef = useRef(new Audio());
 
   const unsubscribeRef = useRef(null); 
+  const unsubscribePresenceRef = useRef(null);
 
+  // تنسيق ذكي لآخر ظهور متوافق مع الفلاتر والويب
   const formatLastSeen = (presenceData) => {
     if (!presenceData) return "غير متصل";
-    const isOnline = presenceData.status === "online";
-    if (isOnline) return "نشط الآن";
-    const time = presenceData.lastSeen;
-    if (!time) return "غير متصل";
+    
+    if (presenceData.status === "online" || presenceData.isOnline === true) {
+      return "نشط الآن";
+    }
+    
+    const timeData = presenceData.lastSeen;
+    if (!timeData) return "غير متصل";
+    
+    let timeInMillis = typeof timeData.toDate === 'function' ? timeData.toDate().getTime() : Number(timeData);
+    if (!timeInMillis || isNaN(timeInMillis)) return "غير متصل";
+
     const now = Date.now();
-    const diffInSeconds = Math.floor((now - time) / 1000);
-    if (diffInSeconds < 60) return "آخر ظهور منذ لحظات";
-    return `آخر ظهور ${format(new Date(time), 'hh:mm a')}`;
+    // const diffInSeconds = Math.floor((now - timeInMillis) / 1000);
+    // if (diffInSeconds < 60) return "آخر ظهور منذ لحظات";
+    
+    return `آخر ظهور ${format(new Date(timeInMillis), 'hh:mm a')}`;
   };
 
+  // 🎯 الدالة السحرية التي ستحدث كولكشن UsersStatus (لتصبح true) وماب الغرفة معاً فوراً
   const updateUserPresence = async (status) => {
     if (!currentUserId || !chatRoomId || chatRoomId === "placeholder_room") return;
+    
+    const isOnlineBool = status === "online";
+    const userStatusRef = doc(db, 'UsersStatus', currentUserId);
     const roomRef = doc(db, 'ChatRooms', chatRoomId);
-    await updateDoc(roomRef, {
-      [`presence.${currentUserId}`]: { status: status, lastSeen: Date.now() }
-    }).catch((error) => {
-      console.error("❌ خطأ في تحديث الحالة على الفايربيس:", error);
-    });
+    
+    const rawIdWithoutPrefix = currentUserId.replace('user_', '');
+    const currentTimestamp = Date.now();
+
+    try {
+      // 1. تحديث كولكشن صورتك (UsersStatus -> user_x) لتتحول القيمة حياً إلى true أو false
+      await setDoc(userStatusRef, {
+        isOnline: isOnlineBool,
+        lastSeen: currentTimestamp
+      }, { merge: true });
+
+      // 2. تحديث ماب الغرفة الداخلي بالصيغتين النظيفة والموسومة لحماية قراءة الفلاتر
+      await setDoc(roomRef, {
+        presence: {
+          [currentUserId]: { status: status, lastSeen: currentTimestamp },
+          [rawIdWithoutPrefix]: { status: status, lastSeen: currentTimestamp }
+        }
+      }, { merge: true });
+
+      console.log(`Presence updated successfully for ${currentUserId} to ${status}`);
+    } catch (error) {
+      console.error("❌ فشل تحديث التواجد الحظي في قاعدة البيانات:", error);
+    }
   };
 
   useEffect(() => {
-    if (chatRoomId) {
+    if (chatRoomId && chatRoomId !== "placeholder_room") {
       prepareAndFetchRoom();
     }
     return () => {
       if (unsubscribeRef.current) unsubscribeRef.current();
+      if (unsubscribePresenceRef.current) unsubscribePresenceRef.current();
       audioPlayerRef.current.pause();
     };
   }, [chatRoomId, currentUserId]); 
@@ -417,11 +446,16 @@ export const useChatController = (roomKey, myUserId) => {
   const prepareAndFetchRoom = async () => {
     try {
       setIsRoomLoading(true);
-      if (!auth.currentUser) {
-        await signInAnonymously(auth);
-      }
-      if (unsubscribeRef.current) { unsubscribeRef.current(); }          
+      if (!auth.currentUser) await signInAnonymously(auth);
+      
+      if (unsubscribeRef.current) unsubscribeRef.current(); 
+      if (unsubscribePresenceRef.current) unsubscribePresenceRef.current();
+
       listenToMessages(chatRoomId, currentUserId);
+      listenToPeerPresenceDynamically(chatRoomId, currentUserId);
+      
+      // بمجرد الدخول والتهيئة، نرفع حالتنا فوراً إلى أونلاين
+      await updateUserPresence("online");
     } catch (e) {
       console.error("خطأ في تهيئة المحادثة:", e);
     } finally {
@@ -446,6 +480,35 @@ export const useChatController = (roomKey, myUserId) => {
     });
   };
 
+  // دالة الاستماع المتطورة للطرف الآخر (تراقب الغرفة والكولكشن الخارجي معاً)
+  const listenToPeerPresenceDynamically = (roomKey, userId) => {
+    const roomRef = doc(db, 'ChatRooms', roomKey);
+    const cleanMyId = String(userId).replace('user_', '');
+
+    unsubscribePresenceRef.current = onSnapshot(roomRef, (docSnap) => {
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        const presenceMap = data.presence || {};
+        
+        const peerKey = Object.keys(presenceMap).find(key => {
+          const cleanKey = String(key).replace('user_', '');
+          return cleanKey !== cleanMyId;
+        });
+        
+        if (peerKey && presenceMap[peerKey]) {
+          setPeerPresence(presenceMap[peerKey]);
+        } else {
+          // استماع احتياطي في حال عدم تهيئة الماب داخل المستند للروم
+          const fallbackPeerId = cleanMyId === "1" ? "user_7" : "user_1"; 
+          const fallbackRef = doc(db, 'UsersStatus', fallbackPeerId);
+          onSnapshot(fallbackRef, (statusSnap) => {
+            if (statusSnap.exists()) setPeerPresence(statusSnap.data());
+          });
+        }
+      }
+    });
+  };
+
   const markIncomingMessagesAsRead = async (docs, userId) => {
     const batch = writeBatch(db);
     let hasUpdates = false;
@@ -459,13 +522,11 @@ export const useChatController = (roomKey, myUserId) => {
     if (hasUpdates) await batch.commit();
   };
 
-  // إرسال الرسالة النصية مع عزل خطأ لارافل لحماية الشات الحي
   const sendMessage = async () => {
     if (!text.trim() || !chatRoomId) return;
     const msgText = text.trim();
     setText("");
     try {
-      // 1. الحفظ في الفايربيس أولاً (ليظهر فوراً عند الطرف الآخر)
       await addDoc(collection(db, 'ChatRooms', chatRoomId, 'Messages'), {
         senderId: currentUserId,
         text: msgText,
@@ -473,22 +534,19 @@ export const useChatController = (roomKey, myUserId) => {
         type: 'text',
         status: 'sent'
       });
-
-      // 2. المزامنة مع لارافل داخل بلوك معزول من التراي والكاتش
       try {
         await chatService.storeMessageApi({
           chatRoomId: chatRoomId,
-          senderId: currentUserId.replace('user_', ''), // تنظيف وحماية الـ ID
+          senderId: currentUserId.replace('user_', ''), 
           type: 'text',
           text: msgText,
           fileUrl: ''
         });
       } catch (laravelErr) {
-        console.error("⚠️ فشل حفظ الرسالة بجدول السيرفر، لكنها أرسلت حياً بالفايربيس:", laravelErr);
+        console.error("⚠️ فشل المزامنة مع سيرفر لارافيل:", laravelErr);
       }
-
     } catch (e) {
-      console.error("❌ فشل إرسال الرسالة كلياً للفايربيس:", e);
+      console.error("❌ فشل إرسال الرسالة لفايربيس:", e);
       setText(msgText);
     }
   };
@@ -498,7 +556,7 @@ export const useChatController = (roomKey, myUserId) => {
     try {
       const messageRef = doc(db, 'ChatRooms', chatRoomId, 'Messages', messageId);
       await updateDoc(messageRef, { text: newText.trim(), isEdited: true, updatedAt: serverTimestamp() });
-    } catch (e) { console.error("❌ فشل تعديل الرسالة:", e); }
+    } catch (e) { console.error(e); }
   };
 
   const deleteMessage = async (messageId) => {
@@ -506,76 +564,33 @@ export const useChatController = (roomKey, myUserId) => {
     try {
       const messageRef = doc(db, 'ChatRooms', chatRoomId, 'Messages', messageId);
       await updateDoc(messageRef, { text: "تم حذف هذه الرسالة", type: "deleted", isDeleted: true });
-    } catch (e) { console.error("❌ فشل حذف الرسالة:", e); }
+    } catch (e) { console.error(e); }
   };
 
-
-
-// رفع الملفات والمستندات مع تأمين البيانات المرسلة للسيرفر
   const uploadFileAndSend = async (file, type, defaultText) => {
     if (!chatRoomId) return;
     setIsUploading(true);
     try {
       let uploadResponse;
       const cleanSenderId = currentUserId.replace('user_', '');
-
-      // 1. الرفع عبر السيرفس المتوافق
       if (type === 'file') {
         uploadResponse = await chatService.uploadAttachmentApi({
-          file: file,
-          fileName: file.name,
-          chatRoomId: chatRoomId,
-          senderId: cleanSenderId
+          file: file, fileName: file.name, chatRoomId: chatRoomId, senderId: cleanSenderId
         });
       } else {
         uploadResponse = await chatService.uploadFileOrMediaApi({
-          file: file,
-          type: type,
-          chatRoomId: chatRoomId,
-          senderId: cleanSenderId
+          file: file, type: type, chatRoomId: chatRoomId, senderId: cleanSenderId
         });
       }
-
-      // استخراج الرابط بشكل آمن حسب طريقة بناء الـ Response من لارافل
       const fileUrl = uploadResponse?.url || uploadResponse?.data?.url;
-
       if (fileUrl) {
         const messageText = type === 'file' ? file.name : defaultText;
-
-        // 2. المزامنة اللحظية بالفايربيس لتظهر في الشات فوراً للطرفين
         await addDoc(collection(db, 'ChatRooms', chatRoomId, 'Messages'), {
-          senderId: currentUserId,
-          text: messageText,
-          timestamp: serverTimestamp(),
-          type: type,
-          fileUrl: fileUrl,
-          status: 'sent'
+          senderId: currentUserId, text: messageText, timestamp: serverTimestamp(), type: type, fileUrl: fileUrl, status: 'sent'
         });
-
-        // 3. المزامنة الخلفية مع لارافل (نقوم بها فقط للصوت والصورة، ونمنعها للمستندات لمنع الـ 500)
-        if (type !== 'file') {
-          try {
-            await chatService.storeMessageApi({
-              chatRoomId: chatRoomId,
-              senderId: cleanSenderId,
-              type: type,
-              text: messageText,
-              fileUrl: fileUrl
-            });
-            console.log(`✅ [Laravel Sync] تمت مزامنة رسالة [${type}] بنجاح مع السيرفر.`);
-          } catch (syncErr) {
-            console.error("⚠️ فشل التخزين الاحتياطي بالمزامنة:", syncErr);
-          }
-        } else {
-          // في حال كان ملفاً (document)، لارافل يخزنه تلقائياً أثناء الرفع مثل فلاتر
-          console.log("✅ [File Success] تم رفع الملف وحفظه بالسيرفر والفايربيس كفلاتر تماماً وتجنبنا الـ 500 الزائدة.");
-        }
-
-      } else {
-        console.error("❌ لم يعُد السيرفر برابط صالح للملف المرفوع.");
       }
     } catch (e) {
-      console.error("❌ خطأ أثناء معالجة رفع الملف المرفق:", e);
+      console.error(e);
     } finally {
       setIsUploading(false);
     }
@@ -587,16 +602,14 @@ export const useChatController = (roomKey, myUserId) => {
       mediaRecorderRef.current = new MediaRecorder(stream);
       audioChunksRef.current = [];
       mediaRecorderRef.current.ondataavailable = (e) => { if (e.data.size > 0) audioChunksRef.current.push(e.data); };
-      
       mediaRecorderRef.current.onstop = async () => {
         const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/m4a' });
         const audioFile = new File([audioBlob], `audio_${Date.now()}.m4a`, { type: 'audio/m4a' });
         await uploadFileAndSend(audioFile, 'audio', 'تسجيل صوتي 🎤');
       };
-
       mediaRecorderRef.current.start();
       setIsRecording(true);
-    } catch (e) { console.error("❌ فشل المايكروفون:", e); }
+    } catch (e) { console.error(e); }
   };
 
   const stopAudioRecording = () => {
@@ -609,7 +622,7 @@ export const useChatController = (roomKey, myUserId) => {
 
   return {
     messages, currentUserId, text, setText, isUploading, setIsUploading, isRoomLoading, isRecording,
-    playingMessageId, audioProgress, audioDuration,
+    playingMessageId, audioProgress, audioDuration, peerPresence, 
     sendMessage, uploadFileAndSend, startAudioRecording, stopAudioRecording,
     audioPlayerRef, updateUserPresence, formatLastSeen, updateMessage, deleteMessage
   };

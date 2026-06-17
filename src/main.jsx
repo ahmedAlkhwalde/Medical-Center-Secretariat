@@ -18,7 +18,7 @@ createRoot(document.getElementById("root")).render(
       <QueryClientProvider client={queryClient}>
         <Provider store={store}>
           <App />
-          {/* <ReactQueryDevtools /> */}
+          <ReactQueryDevtools />
         </Provider>
       </QueryClientProvider>
     </BrowserRouter>

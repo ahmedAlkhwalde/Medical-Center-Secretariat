@@ -1,8 +1,7 @@
-
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import apiClient from "../../config/apiClient"; // تذكر إرجاع خطوتين للخلف حسب مسار ملفك
-import { messaging, requestForToken } from "../../firebase"; // 👈 استيراد إعدادات الفايربيس الخاصة بك
-import { onMessage } from "firebase/messaging"; // 👈 استيراد تابع الاستماع من مكتبة الفايربيس
+import apiClient from "../config/apiClient";
+import { messaging, requestForToken } from "../firebase";
+import { onMessage } from "firebase/messaging";
 
 export const NOTIFICATION_KEYS = {
   all: ["notifications"],
@@ -16,9 +15,6 @@ class NotificationService {
   // 🔔 1. منطق الفايربيس المدمج (Firebase Logic)
   // ==========================================
 
-  /**
-   * إعداد الفايربيس وجلب التوكن وتحديثه بالسيرفر مباشرة
-   */
   async initializeFCM(isTokenProcessedRef) {
     if (isTokenProcessedRef.current) return null;
 
@@ -28,10 +24,7 @@ class NotificationService {
         
         if (token && !isTokenProcessedRef.current) {
           console.log("🔥 تم الحصول على FCM Token دمجاً داخل السيرفس:", token);
-          
-          // استدعاء دالة الـ API الموجودة بنفس الكلاس بالأسفل
           await this.updateFcmTokenApi(token);
-          
           isTokenProcessedRef.current = true;
           return token;
         }
@@ -42,9 +35,6 @@ class NotificationService {
     return null;
   }
 
-  /**
-   * الاستماع للرسائل في المقدمة (Foreground)
-   */
   listenToForegroundMessages() {
     return onMessage(messaging, (payload) => {
       console.log("🔔 تم استلام البيانات في المقدمة عبر NotificationService:", payload);
@@ -52,7 +42,7 @@ class NotificationService {
   }
 
   // ==========================================
-  // 🌐 2. دالات الـ API (Axios Calls) كما هي لديك
+  // 🌐 2. دالات الـ API (Axios Calls)
   // ==========================================
 
   async updateFcmTokenApi(fcmToken) {
@@ -62,6 +52,7 @@ class NotificationService {
 
   async getMyNotificationsApi() {
     const response = await apiClient.get('/notification/my-notifications');
+    console.log("my",response.data);
     return response.data;
   }
 
@@ -77,6 +68,7 @@ class NotificationService {
 
   async markAsReadApi(uuid) {
     const response = await apiClient.get(`/notification/my-notifications/${uuid}/seen`);
+    console.log(response.data);
     return response.data;
   }
 
@@ -86,7 +78,7 @@ class NotificationService {
   }
 
   // ==========================================
-  // ⚡ 3. TanStack Query Hooks كما هي لديك
+  // ⚡ 3. TanStack Query Hooks
   // ==========================================
 
   useGetNotifications() {

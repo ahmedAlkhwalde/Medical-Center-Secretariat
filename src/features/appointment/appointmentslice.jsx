@@ -1,380 +1,130 @@
-// import { createSlice } from '@reduxjs/toolkit';
-
-// const initialState = {
-//   selectedSpecialty: 'All Specialties',
-//   selectedDoctorId: 'All Doctors',
-//   searchQuery: '',
-//    doctorsSchedule: [
-
-//     // --- السبت SAT ---
-//     { id: 1, name: 'Dr. Aris Thorne', specialty: 'Surgery', room: 'RM 402', day: 'SAT', time: '08:00', color: 'blue' },
-//     { id: 2, name: 'Dr. Elena Vance', specialty: 'Pediatrics', room: 'RM 105', day: 'SAT', time: '08:00', color: 'purple' },
-//     { id: 3, name: 'Dr. Marcus Aurelius', specialty: 'Internal Medicine', room: 'RM 202', day: 'SAT', time: '09:00', color: 'green' },
-//     { id: 4, name: 'Dr. Hai Jordan', specialty: 'Surgery', room: 'RM 412', day: 'SAT', time: '10:00', color: 'blue' },
-//     { id: 5, name: 'Dr. Stephen Strange', specialty: 'Surgery', room: 'RM 411', day: 'SAT', time: '13:00', color: 'blue' },
-
-//     // --- الأحد SUN ---
-//     { id: 6, name: 'Dr. Simon Lee', specialty: 'Internal Medicine', room: 'RM 201', day: 'SUN', time: '08:00', color: 'green' },
-//     { id: 7, name: 'Dr. Lydia Deetz', specialty: 'Surgery', room: 'RM 405', day: 'SUN', time: '09:00', color: 'blue' },
-//     { id: 8, name: 'Dr. Diana Prince', specialty: 'Pediatrics', room: 'RM 120', day: 'SUN', time: '10:00', color: 'purple' },
-//     { id: 9, name: 'Dr. Tony Stark', specialty: 'Surgery', room: 'RM 220', day: 'SUN', time: '13:00', color: 'blue' },
-
-//     // --- الاثنين MON ---
-//     { id: 10, name: 'Dr. Sarah Miller', specialty: 'Surgery', room: 'RM 403', day: 'MON', time: '08:00', color: 'blue' },
-//     { id: 11, name: 'Dr. James Holt', specialty: 'Internal Medicine', room: 'RM 210', day: 'MON', time: '09:00', color: 'green' },
-//     { id: 12, name: 'Dr. Wendy Darling', specialty: 'Internal Medicine', room: 'RM 211', day: 'MON', time: '09:00', color: 'green' },
-//     { id: 13, name: 'Dr. Barry Allen', specialty: 'Pediatrics', room: 'RM 122', day: 'MON', time: '10:00', color: 'purple' },
-
-//     // --- الثلاثاء TUE ---
-//     { id: 14, name: 'Dr. Amy Pond', specialty: 'Pediatrics', room: 'RM 102', day: 'TUE', time: '08:00', color: 'purple' },
-//     { id: 15, name: 'Dr. Peter Pan', specialty: 'Surgery', room: 'RM 112', day: 'TUE', time: '09:00', color: 'blue' },
-//     { id: 16, name: 'Dr. Victor Stone', specialty: 'Surgery', room: 'RM 440', day: 'TUE', time: '10:00', color: 'blue' },
-//     { id: 17, name: 'Dr. Arthur Curry', specialty: 'Internal Medicine', room: 'RM 221', day: 'TUE', time: '10:00', color: 'green' },
-
-//     // --- الأربعاء WED ---
-//     { id: 18, name: 'Dr. John Watson', specialty: 'Internal Medicine', room: 'RM 205', day: 'WED', time: '08:00', color: 'green' },
-//     { id: 19, name: 'Dr. Bruce Wayne', specialty: 'Surgery', room: 'RM 401', day: 'WED', time: '09:00', color: 'blue' },
-//     { id: 20, name: 'Dr. Natasha Romanoff', specialty: 'Surgery', room: 'RM 126', day: 'WED', time: '13:00', color: 'blue' },
-
-//     // --- الخميس THU ---
-//     { id: 21, name: 'Dr. Clara Oswald', specialty: 'Surgery', room: 'RM 401', day: 'THU', time: '08:00', color: 'blue' },
-//     { id: 22, name: 'Dr. Selina Kyle', specialty: 'Pediatrics', room: 'RM 115', day: 'THU', time: '09:00', color: 'purple' },
-//     { id: 23, name: 'Dr. Jordan Kent', specialty: 'Surgery', room: 'RM 412', day: 'THU', time: '10:00', color: 'blue' },
-//     { id: 24, name: 'Dr. Steve Rogers', specialty: 'Surgery', room: 'RM 410', day: 'THU', time: '13:00', color: 'blue' },
-
-//     // --- الجمعة FRI ---
-//     { id: 25, name: 'Dr. Martha Jones', specialty: 'Pediatrics', room: 'RM 109', day: 'FRI', time: '08:00', color: 'purple' },
-//     { id: 26, name: 'Dr. Clark Kent', specialty: 'Internal Medicine', room: 'RM 215', day: 'FRI', time: '09:00', color: 'green' },
-//     { id: 27, name: 'Dr. Bruce Banner', specialty: 'Surgery', room: 'RM 230', day: 'FRI', time: '13:00', color: 'blue' },
-//   ],
-//   patients: [
-//     { id: 'p1', name: 'Ahmad Ali', phone: '0933111222', dob: '1990-01-01', gender: 'Male' },
-//     { id: 'p2', name: 'Sara Smith', phone: '0944555666', dob: '1995-05-12', gender: 'Female' },
-//   ],
-//   appointments: []
-// };
-
-// const appointmentSlice = createSlice({
-//   name: 'schedule',
-//   initialState,
-//   reducers: {
-//     setSpecialty: (state, action) => { state.selectedSpecialty = action.payload; },
-//     setDoctorFilter: (state, action) => { state.selectedDoctorId = action.payload; },
-//     setSearchQuery: (state, action) => { state.searchQuery = action.payload; },
-//     addPatient: (state, action) => { state.patients.push(action.payload); },
-//     addAppointment: (state, action) => {
-//       // منع التكرار في نفس الوقت لنفس الطبيب
-//       const exists = state.appointments.find(a => a.doctorId === action.payload.doctorId && a.timeSlot === action.payload.timeSlot);
-//       if (!exists) state.appointments.push(action.payload);
-//     },
-//     deleteAppointment: (state, action) => {
-//       state.appointments = state.appointments.filter(app =>
-//         !(app.doctorId === action.payload.doctorId && app.timeSlot === action.payload.timeSlot)
-//       );
-//     },
-//     // داخل reducers في ملف appointmentSlice
-//     updatePaymentStatus: (state, action) => {
-//     const { doctorId, timeSlot } = action.payload;
-//     const appointment = state.appointments.find(
-//         a => a.doctorId === doctorId && a.timeSlot === timeSlot
-//     );
-//     if (appointment) {
-//         appointment.isPaid = !appointment.isPaid; // تبديل الحالة
-//     }
-//     }
-//   },
-// });
-
-// export const { setSpecialty, setDoctorFilter, setSearchQuery, addPatient, addAppointment, deleteAppointment } = appointmentSlice.actions;
-// export default appointmentSlice.reducer;
-
 import { createSlice } from "@reduxjs/toolkit";
 
+// توقيت الجدول العام - تم إلغاء التقييد ليظهر كل الأطباء في سطر واحد فوراً
+export const TIME_SLOTS = [
+  { value: "ALL_DAY_SHIFTS", label: "الأطباء الحاليين" },
+];
+
+export const MONTHS = [
+  "January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December",
+];
+
+export const MONTHS_AR = [
+  "يناير", "فبراير", "مارس", "أبريل", "مايو", "يونيو",
+  "يوليو", "أغسطس", "سبتمبر", "أكتوبر", "نوفمبر", "ديسمبر",
+];
+
+export const YEARS = [2024, 2025, 2026, 2027];
+
+export const DAY_LABELS = {
+  SAT: "السبت", SUN: "الأحد", MON: "الإثنين", TUE: "الثلاثاء",
+  WED: "الأربعاء", THU: "الخميس", FRI: "الجمعة",
+};
+
+const SPECIALTY_LABELS = {
+  "غير معروف": "غير معروف",
+};
+
+const GENDER_LABELS = {
+  Male: "ذكر",
+  Female: "أنثى",
+};
+
+export const getSpecialtyLabel = (value) => SPECIALTY_LABELS[value] || value;
+export const getGenderLabel = (value) => GENDER_LABELS[value] || value;
+
+export const parseStartTime = (value) => {
+  if (!value) return null;
+  const match = value.match(/\d{1,2}:\d{2}/);
+  return match ? match[0] : null;
+};
+
+export const formatRoom = (value) => (value ? `غرفة ${value}` : "");
+
+// دالة مساعدة لحساب دليل الأسبوع الحالي (0, 1, 2, 3...) بناءً على تاريخ اليوم تلقائياً
+const getCurrentWeekIndex = (date) => {
+  const firstDayOfMonth = new Date(date.getFullYear(), date.getMonth(), 1);
+  const dayOfWeek = firstDayOfMonth.getDay(); 
+  return Math.floor((date.getDate() + dayOfWeek - 1) / 7);
+};
+
+// جلب تاريخ اليوم الحالي تلقائياً عند تحميل التطبيق
+const today = new Date();
+
+// دالة محاذاة البيانات (Mapper) لتحويل صيغة الـ API إلى صيغة الواجهات لدينا
+export const mapApiScheduleToFrontend = (apiData) => {
+  const dayMapping = {
+    Saturday: "SAT", Sunday: "SUN", Monday: "MON", Tuesday: "TUE",
+    Wednesday: "WED", Thursday: "THU", Friday: "FRI"
+  };
+
+  return (apiData || []).map((item) => {
+    const doctorObj = item.doctlor || item.doctor || {}; // التعامل الآمن مع الـ Typo لقاعدة البيانات
+    const startHour = item.start_time ? item.start_time.substring(0, 5) : "00:00";
+    const endHour = item.end_time ? item.end_time.substring(0, 5) : "00:00";
+
+    return {
+      id: doctorObj.uuid || item.uuid,
+      scheduleUuid: item.uuid,
+      name: doctorObj.name || "طبيب مجهول",
+      specialty: item.specialty.name || "غير معروف",
+      day: dayMapping[item.day_name_en] || "SUN",
+      time: "ALL_DAY_SHIFTS", // توحيد القيمة مع الـ TIME_SLOTS ليظهر الطبيب بالجدول فوراً
+      workingHours: `from : ${startHour} to : ${endHour}`, // تمرير التوقيت الفعلي والمطوّر للمودال
+      slot: doctorObj.slot || "00:20:00", // فترة المعاينة الديناميكية الخاصة بكل طبيب
+      room: item.clinic?.name ? item.clinic.name.replace("عيادة ", "") : "101",
+      isActive: item.is_active
+    };
+  });
+};
+
 const initialState = {
-  selectedSpecialty: "All Specialties",
+  doctorsSchedule: [],
+  patients: [],
+  appointments: [],
+  selectedSpecialty: "all", 
   selectedDoctorId: "All Doctors",
   searchQuery: "",
-  doctorsSchedule: [
-    // --- السبت SAT ---
-    {
-      id: 1,
-      name: "Dr. Aris Thorne",
-      specialty: "Surgery",
-      room: "RM 402",
-      day: "SAT",
-      time: "from : 8:00 to : 2:00",
-      color: "blue",
-    },
-    {
-      id: 2,
-      name: "Dr. Elena Vance",
-      specialty: "Pediatrics",
-      room: "RM 105",
-      day: "SAT",
-      time: "from : 4:00 to : 10:00",
-      color: "purple",
-    },
-    {
-      id: 3,
-      name: "Dr. Marcus Aurelius",
-      specialty: "Internal Medicine",
-      room: "RM 202",
-      day: "SAT",
-      time: "from : 8:00 to : 2:00",
-      color: "green",
-    },
-    {
-      id: 4,
-      name: "Dr. Hai Jordan",
-      specialty: "Surgery",
-      room: "RM 412",
-      day: "SAT",
-      time: "from : 4:00 to : 10:00",
-      color: "blue",
-    },
-    {
-      id: 5,
-      name: "Dr. Stephen Strange",
-      specialty: "Surgery",
-      room: "RM 411",
-      day: "SAT",
-      time: "from : 8:00 to : 2:00",
-      color: "blue",
-    },
-
-    // --- الأحد SUN ---
-    {
-      id: 6,
-      name: "Dr. Simon Lee",
-      specialty: "Internal Medicine",
-      room: "RM 201",
-      day: "SUN",
-      time: "from : 4:00 to : 10:00",
-      color: "green",
-    },
-    {
-      id: 7,
-      name: "Dr. Lydia Deetz",
-      specialty: "Surgery",
-      room: "RM 405",
-      day: "SUN",
-      time: "from : 8:00 to : 2:00",
-      color: "blue",
-    },
-    {
-      id: 8,
-      name: "Dr. Diana Prince",
-      specialty: "Pediatrics",
-      room: "RM 120",
-      day: "SUN",
-      time: "from : 4:00 to : 10:00",
-      color: "purple",
-    },
-    {
-      id: 9,
-      name: "Dr. Tony Stark",
-      specialty: "Surgery",
-      room: "RM 220",
-      day: "SUN",
-      time: "from : 8:00 to : 2:00",
-      color: "blue",
-    },
-
-    // --- الاثنين MON ---
-    {
-      id: 10,
-      name: "Dr. Sarah Miller",
-      specialty: "Surgery",
-      room: "RM 403",
-      day: "MON",
-      time: "from : 8:00 to : 2:00",
-      color: "blue",
-    },
-    {
-      id: 11,
-      name: "Dr. James Holt",
-      specialty: "Internal Medicine",
-      room: "RM 210",
-      day: "MON",
-      time: "from : 4:00 to : 10:00",
-      color: "green",
-    },
-    {
-      id: 12,
-      name: "Dr. Wendy Darling",
-      specialty: "Internal Medicine",
-      room: "RM 211",
-      day: "MON",
-      time: "from : 8:00 to : 2:00",
-      color: "green",
-    },
-    {
-      id: 13,
-      name: "Dr. Barry Allen",
-      specialty: "Pediatrics",
-      room: "RM 122",
-      day: "MON",
-      time: "from : 4:00 to : 10:00",
-      color: "purple",
-    },
-
-    // --- الثلاثاء TUE ---
-    {
-      id: 14,
-      name: "Dr. Amy Pond",
-      specialty: "Pediatrics",
-      room: "RM 102",
-      day: "TUE",
-      time: "from : 4:00 to : 10:00",
-      color: "purple",
-    },
-    {
-      id: 15,
-      name: "Dr. Peter Pan",
-      specialty: "Surgery",
-      room: "RM 112",
-      day: "TUE",
-      time: "from : 8:00 to : 2:00",
-      color: "blue",
-    },
-    {
-      id: 16,
-      name: "Dr. Victor Stone",
-      specialty: "Surgery",
-      room: "RM 440",
-      day: "TUE",
-      time: "from : 4:00 to : 10:00",
-      color: "blue",
-    },
-    {
-      id: 17,
-      name: "Dr. Arthur Curry",
-      specialty: "Internal Medicine",
-      room: "RM 221",
-      day: "TUE",
-      time: "from : 8:00 to : 2:00",
-      color: "green",
-    },
-
-    // --- الأربعاء WED ---
-    {
-      id: 18,
-      name: "Dr. John Watson",
-      specialty: "Internal Medicine",
-      room: "RM 205",
-      day: "WED",
-      time: "from : 8:00 to : 2:00",
-      color: "green",
-    },
-    {
-      id: 19,
-      name: "Dr. Bruce Wayne",
-      specialty: "Surgery",
-      room: "RM 401",
-      day: "WED",
-      time: "from : 4:00 to : 10:00",
-      color: "blue",
-    },
-    {
-      id: 20,
-      name: "Dr. Natasha Romanoff",
-      specialty: "Surgery",
-      room: "RM 126",
-      day: "WED",
-      time: "from : 8:00 to : 2:00",
-      color: "blue",
-    },
-
-    // --- الخميس THU ---
-    {
-      id: 21,
-      name: "Dr. Clara Oswald",
-      specialty: "Surgery",
-      room: "RM 401",
-      day: "THU",
-      time: "from : 4:00 to : 10:00",
-      color: "blue",
-    },
-    {
-      id: 22,
-      name: "Dr. Selina Kyle",
-      specialty: "Pediatrics",
-      room: "RM 115",
-      day: "THU",
-      time: "from : 8:00 to : 2:00",
-      color: "purple",
-    },
-    {
-      id: 23,
-      name: "Dr. Jordan Kent",
-      specialty: "Surgery",
-      room: "RM 412",
-      day: "THU",
-      time: "from : 4:00 to : 10:00",
-      color: "blue",
-    },
-    {
-      id: 24,
-      name: "Dr. Steve Rogers",
-      specialty: "Surgery",
-      room: "RM 410",
-      day: "THU",
-      time: "from : 8:00 to : 2:00",
-      color: "blue",
-    },
-
-    // --- الجمعة FRI ---
-    {
-      id: 25,
-      name: "Dr. Martha Jones",
-      specialty: "Pediatrics",
-      room: "RM 109",
-      day: "FRI",
-      time: "from : 8:00 to : 2:00",
-      color: "purple",
-    },
-    {
-      id: 26,
-      name: "Dr. Clark Kent",
-      specialty: "Internal Medicine",
-      room: "RM 215",
-      day: "FRI",
-      time: "from : 4:00 to : 10:00",
-      color: "green",
-    },
-    {
-      id: 27,
-      name: "Dr. Bruce Banner",
-      specialty: "Surgery",
-      room: "RM 230",
-      day: "FRI",
-      time: "from : 8:00 to : 2:00",
-      color: "blue",
-    },
-  ],
-  patients: [
-    {
-      id: "p1",
-      name: "Ahmad Ali",
-      phone: "0933111222",
-      dob: "1990-01-01",
-      gender: "Male",
-    },
-    {
-      id: "p2",
-      name: "Sara Smith",
-      phone: "0944555666",
-      dob: "1995-05-12",
-      gender: "Female",
-    },
-  ],
-  appointments: [],
+  // إعدادات الوقت الافتراضية تعتمد ديناميكياً على تاريخ جهاز المستخدم اللحظي
+  selectedYear: today.getFullYear(),
+  selectedMonth: MONTHS[today.getMonth()],
+  selectedWeek: getCurrentWeekIndex(today),
 };
 
 const appointmentSlice = createSlice({
   name: "appointment",
   initialState,
   reducers: {
+    setDoctorsSchedule: (state, action) => {
+      state.doctorsSchedule = action.payload;
+    },
+    // دالة إعادة تعيين التاريخ والعودة إلى تاريخ اليوم الحالي فوراً
+    resetToToday: (state) => {
+      const currentToday = new Date();
+      state.selectedYear = currentToday.getFullYear();
+      state.selectedMonth = MONTHS[currentToday.getMonth()];
+      state.selectedWeek = getCurrentWeekIndex(currentToday);
+    },
+    addPatient: (state, action) => {
+      state.patients.push(action.payload);
+    },
+    addAppointment: (state, action) => {
+      state.appointments.push(action.payload);
+    },
+    deleteAppointment: (state, action) => {
+      const { doctorId, timeSlot } = action.payload;
+      state.appointments = state.appointments.filter(
+        (a) => !(a.doctorId === doctorId && a.timeSlot === timeSlot)
+      );
+    },
+    updatePaymentStatus: (state, action) => {
+      const { doctorId, timeSlot } = action.payload;
+      const app = state.appointments.find(
+        (a) => a.doctorId === doctorId && a.timeSlot === timeSlot
+      );
+      if (app) app.isPaid = !app.isPaid;
+    },
     setSpecialty: (state, action) => {
       state.selectedSpecialty = action.payload;
     },
@@ -384,107 +134,31 @@ const appointmentSlice = createSlice({
     setSearchQuery: (state, action) => {
       state.searchQuery = action.payload;
     },
-    addPatient: (state, action) => {
-      state.patients.unshift(action.payload);
+    setSelectedYear: (state, action) => {
+      state.selectedYear = action.payload;
     },
-    addAppointment: (state, action) => {
-      const exists = state.appointments.find(
-        (a) =>
-          a.doctorId === action.payload.doctorId &&
-          a.timeSlot === action.payload.timeSlot,
-      );
-      if (!exists) state.appointments.push(action.payload);
+    setSelectedMonth: (state, action) => {
+      state.selectedMonth = action.payload;
     },
-    deleteAppointment: (state, action) => {
-      state.appointments = state.appointments.filter(
-        (app) =>
-          !(
-            app.doctorId === action.payload.doctorId &&
-            app.timeSlot === action.payload.timeSlot
-          ),
-      );
-    },
-    updatePaymentStatus: (state, action) => {
-      const { doctorId, timeSlot } = action.payload;
-      const appointment = state.appointments.find(
-        (a) => a.doctorId === doctorId && a.timeSlot === timeSlot,
-      );
-      if (appointment) {
-        appointment.isPaid = !appointment.isPaid;
-      }
+    setSelectedWeek: (state, action) => {
+      state.selectedWeek = action.payload;
     },
   },
 });
 
 export const {
-  setSpecialty,
-  setDoctorFilter,
-  setSearchQuery,
+  setDoctorsSchedule,
+  resetToToday,
   addPatient,
   addAppointment,
   deleteAppointment,
   updatePaymentStatus,
+  setSpecialty,
+  setDoctorFilter,
+  setSearchQuery,
+  setSelectedYear,
+  setSelectedMonth,
+  setSelectedWeek,
 } = appointmentSlice.actions;
 
 export default appointmentSlice.reducer;
-
-// import { createSlice } from '@reduxjs/toolkit';
-
-// const initialState = {
-//   selectedSpecialty: 'All Specialties',
-//   doctorsSchedule: [
-//     // --- السبت SAT ---
-//     { id: 1, name: 'Dr. Aris Thorne', specialty: 'Surgery', room: 'RM 402', day: 'SAT', time: '08:00', color: 'blue' },
-//     { id: 2, name: 'Dr. Elena Vance', specialty: 'Pediatrics', room: 'RM 105', day: 'SAT', time: '08:00', color: 'purple' },
-//     { id: 3, name: 'Dr. Marcus Aurelius', specialty: 'Internal Medicine', room: 'RM 202', day: 'SAT', time: '09:00', color: 'green' },
-//     { id: 4, name: 'Dr. Hai Jordan', specialty: 'Surgery', room: 'RM 412', day: 'SAT', time: '10:00', color: 'blue' },
-//     { id: 5, name: 'Dr. Stephen Strange', specialty: 'Surgery', room: 'RM 411', day: 'SAT', time: '13:00', color: 'blue' },
-
-//     // --- الأحد SUN ---
-//     { id: 6, name: 'Dr. Simon Lee', specialty: 'Internal Medicine', room: 'RM 201', day: 'SUN', time: '08:00', color: 'green' },
-//     { id: 7, name: 'Dr. Lydia Deetz', specialty: 'Surgery', room: 'RM 405', day: 'SUN', time: '09:00', color: 'blue' },
-//     { id: 8, name: 'Dr. Diana Prince', specialty: 'Pediatrics', room: 'RM 120', day: 'SUN', time: '10:00', color: 'purple' },
-//     { id: 9, name: 'Dr. Tony Stark', specialty: 'Surgery', room: 'RM 220', day: 'SUN', time: '13:00', color: 'blue' },
-
-//     // --- الاثنين MON ---
-//     { id: 10, name: 'Dr. Sarah Miller', specialty: 'Surgery', room: 'RM 403', day: 'MON', time: '08:00', color: 'blue' },
-//     { id: 11, name: 'Dr. James Holt', specialty: 'Internal Medicine', room: 'RM 210', day: 'MON', time: '09:00', color: 'green' },
-//     { id: 12, name: 'Dr. Wendy Darling', specialty: 'Internal Medicine', room: 'RM 211', day: 'MON', time: '09:00', color: 'green' },
-//     { id: 13, name: 'Dr. Barry Allen', specialty: 'Pediatrics', room: 'RM 122', day: 'MON', time: '10:00', color: 'purple' },
-
-//     // --- الثلاثاء TUE ---
-//     { id: 14, name: 'Dr. Amy Pond', specialty: 'Pediatrics', room: 'RM 102', day: 'TUE', time: '08:00', color: 'purple' },
-//     { id: 15, name: 'Dr. Peter Pan', specialty: 'Surgery', room: 'RM 112', day: 'TUE', time: '09:00', color: 'blue' },
-//     { id: 16, name: 'Dr. Victor Stone', specialty: 'Surgery', room: 'RM 440', day: 'TUE', time: '10:00', color: 'blue' },
-//     { id: 17, name: 'Dr. Arthur Curry', specialty: 'Internal Medicine', room: 'RM 221', day: 'TUE', time: '10:00', color: 'green' },
-
-//     // --- الأربعاء WED ---
-//     { id: 18, name: 'Dr. John Watson', specialty: 'Internal Medicine', room: 'RM 205', day: 'WED', time: '08:00', color: 'green' },
-//     { id: 19, name: 'Dr. Bruce Wayne', specialty: 'Surgery', room: 'RM 401', day: 'WED', time: '09:00', color: 'blue' },
-//     { id: 20, name: 'Dr. Natasha Romanoff', specialty: 'Surgery', room: 'RM 126', day: 'WED', time: '13:00', color: 'blue' },
-
-//     // --- الخميس THU ---
-//     { id: 21, name: 'Dr. Clara Oswald', specialty: 'Surgery', room: 'RM 401', day: 'THU', time: '08:00', color: 'blue' },
-//     { id: 22, name: 'Dr. Selina Kyle', specialty: 'Pediatrics', room: 'RM 115', day: 'THU', time: '09:00', color: 'purple' },
-//     { id: 23, name: 'Dr. Jordan Kent', specialty: 'Surgery', room: 'RM 412', day: 'THU', time: '10:00', color: 'blue' },
-//     { id: 24, name: 'Dr. Steve Rogers', specialty: 'Surgery', room: 'RM 410', day: 'THU', time: '13:00', color: 'blue' },
-
-//     // --- الجمعة FRI ---
-//     { id: 25, name: 'Dr. Martha Jones', specialty: 'Pediatrics', room: 'RM 109', day: 'FRI', time: '08:00', color: 'purple' },
-//     { id: 26, name: 'Dr. Clark Kent', specialty: 'Internal Medicine', room: 'RM 215', day: 'FRI', time: '09:00', color: 'green' },
-//     { id: 27, name: 'Dr. Bruce Banner', specialty: 'Surgery', room: 'RM 230', day: 'FRI', time: '13:00', color: 'blue' },
-//   ],
-// };
-
-// const appointmentSlice = createSlice({
-//   name: 'schedule',
-//   initialState,
-//   reducers: {
-//     setSpecialty: (state, action) => {
-//       state.selectedSpecialty = action.payload;
-//     },
-//   },
-// });
-
-// export const { setSpecialty } = appointmentSlice.actions;
-// export default appointmentSlice.reducer;

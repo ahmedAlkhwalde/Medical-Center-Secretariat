@@ -59,6 +59,12 @@ const navItems = [
     icon: <ChatIcon />,
     path: "/main-page/conversations",
   },
+  {
+    id: 8,
+    name: "الملف الشخصي",
+    icon: <PersonIcon />,
+    path: "/main-page/profile",
+  },
 ];
 
 const Sidebar = () => {

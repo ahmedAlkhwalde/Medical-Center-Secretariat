@@ -85,6 +85,8 @@ const LoginPage = () => {
                 lastUsedEmail: email,
               }),
             );
+            
+            console.log(data.user);
             dispatch(
               showSnackbar({
                 message: "تم تسجيل الدخول بنجاح",

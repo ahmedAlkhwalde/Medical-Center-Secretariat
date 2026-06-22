@@ -66,7 +66,7 @@ const PatientsRecordsPage = () => {
         <div 
           className={
             showSearchResults 
-              ? "sticky top-0 z-10 py-4 mb-6 -mx-3 px-3 backdrop-blur-md theme-surface-90 transition-all duration-300" 
+              ? "sticky -top-4 z-10 py-4 mb-6 -mx-3 px-3 backdrop-blur-md theme-surface-90 transition-all duration-300" 
               : "flex flex-col items-center justify-center min-h-125 py-12 transition-all duration-300"
           }
         >

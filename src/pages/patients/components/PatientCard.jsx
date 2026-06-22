@@ -26,7 +26,7 @@ const PatientCard = ({ patient, onClick }) => {
       onClick={handleCardClick}
     >
       {/* خط تأثير جمالي متحرك على الجانب */}
-      <div className="absolute right-0 top-0 w-1 h-full bg-linear-to-b from-blue-500 via-purple-500 to-transparent"></div>
+      <div className="absolute right-0  w-1 h-full bg-linear-to-b from-blue-500 via-purple-500 to-transparent"></div>
 
       {/* دائرة زينة */}
       <div className="absolute left-6 top-6 w-3 h-3 rounded-full bg-linear-to-br from-blue-400 to-purple-500 opacity-70 group-hover:opacity-100 transition-opacity"></div>

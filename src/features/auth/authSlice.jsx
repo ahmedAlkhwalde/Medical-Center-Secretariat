@@ -1,6 +1,6 @@
 import { createSlice, current } from "@reduxjs/toolkit";
 
-const STORAGE_KEY = "manegar_auth";
+const STORAGE_KEY = "secretarai_auth";
 
 const readStoredAuth = () => {
   const readFromStorage = (storage) => {

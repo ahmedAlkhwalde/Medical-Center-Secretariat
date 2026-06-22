@@ -753,8 +753,10 @@ const BookingModal = ({ doctor, onClose, selectedDate }) => {
                   }
 
                   const status = booking?.status;
-                  const isHasBooked = status === "has booked" || status === "has changed";
-                  const isWaiting = status === "waiting" || status === "is waiting";
+                  const isHasBooked = status === "has booked";
+                  const isChangig = status === "has changed";
+                  const isWaiting = status === "is waiting";
+                  const isVisited = status === "has visited";
                   const isPaid = status === "paid";
 
                   // ✅ قابل للسحب متى كان has booked أو has changed
@@ -852,8 +854,10 @@ const BookingModal = ({ doctor, onClose, selectedDate }) => {
                               </span>
                               <span className="text-[10px] theme-bg border theme-border theme-text-muted px-2 py-0.5 rounded-md font-bold">
                                 {isHasBooked && "تم الحجز"}
+                                {isChangig && "تم النقل"}
                                 {isWaiting && "في الانتظار"}
                                 {isPaid && "مكتمل ومدفوع"}
+                                {isVisited && "تمت الزيارة"}
                               </span>
                             </div>
                             <div className="flex flex-wrap items-center gap-x-5 gap-y-1 text-xs font-bold theme-text-muted mt-2">
@@ -882,7 +886,7 @@ const BookingModal = ({ doctor, onClose, selectedDate }) => {
 
                       {booking && booking.isApiData && (
                         <div className="flex items-center gap-3">
-                          {isHasBooked && (
+                          {(isHasBooked  || isChangig) && (
                             <button
                               onClick={() =>
                                 updateToWaitingMutation.mutate(booking.uuid, {
@@ -898,7 +902,7 @@ const BookingModal = ({ doctor, onClose, selectedDate }) => {
                                 updateToPaidMutation.isPending ||
                                 deleteAppointmentServerMutation.isPending
                               }
-                              className="flex items-center gap-2 px-5 py-2.5 rounded-2xl font-black text-sm transition-all shadow-lg theme-surface border theme-border theme-text hover:theme-hover-surface min-w-[120px] justify-center"
+                              className="flex cursor-pointer items-center gap-2 px-5 py-2.5 rounded-2xl font-black text-sm transition-all shadow-lg theme-surface border theme-border theme-text hover:theme-hover-surface min-w-[120px] justify-center"
                             >
                               {isWaitingPending ? (
                                 <CircularProgress size={16} color="inherit" />
@@ -909,7 +913,7 @@ const BookingModal = ({ doctor, onClose, selectedDate }) => {
                             </button>
                           )}
 
-                          {isWaiting && (
+                          {isVisited && (
                             <button
                               onClick={() =>
                                 updateToPaidMutation.mutate(booking.uuid, {
@@ -943,7 +947,7 @@ const BookingModal = ({ doctor, onClose, selectedDate }) => {
                             </div>
                           )}
 
-                          {!isPaid && (
+                          {(isHasBooked || isChangig) && (
                             <button
                               onClick={() =>
                                 deleteAppointmentServerMutation.mutate(booking.uuid, {

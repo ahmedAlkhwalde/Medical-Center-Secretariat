@@ -7,6 +7,7 @@ export const getInitialThemeMode = () => {
 
   const storedTheme = window.localStorage.getItem(THEME_STORAGE_KEY);
 
+  // إذا كان المستخدم قد زار الموقع سابقاً وحدد خياره، نلتزم به
   if (storedTheme === "dark") {
     return true;
   }
@@ -15,9 +16,18 @@ export const getInitialThemeMode = () => {
     return false;
   }
 
-  return Boolean(
-    window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches,
+  // 👇 إذا كانت هذه "أول مرة" يفتح فيها الموقع (storedTheme يساوي null)
+  const isSystemDark = Boolean(
+    window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches
   );
+
+  // نخزن خيار النظام فوراً في الـ localStorage ليكون الخيار الثابت مستقبلاً
+  window.localStorage.setItem(
+    THEME_STORAGE_KEY,
+    isSystemDark ? "dark" : "light"
+  );
+
+  return isSystemDark;
 };
 
 export const applyThemeMode = (isDark) => {

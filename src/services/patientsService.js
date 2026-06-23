@@ -24,7 +24,7 @@ export const usePatientHistoryQuery = (uuid) => {
     queryKey: ["patientHistory", uuid],
     queryFn: async () => {
       if (!uuid) return null;
-      const response = await apiClient.get(`/admin/patients/${uuid}/history`);
+      const response = await apiClient.get(`/secretary/${uuid}/appointments`);
       console.log(response.data);
       return response.data;
     },

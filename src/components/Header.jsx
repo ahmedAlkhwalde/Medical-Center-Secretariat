@@ -12,7 +12,7 @@ import {
 import LocalHospitalIcon from "@mui/icons-material/LocalHospital";
 import { setSearchQuery, toggleMobileMenu } from "../features/uiSlice";
 import { Link } from "react-router-dom";
-import notificationService from "../services/notificationChatService"; // 👈 استيراد السيرفس (تأكد من المسار)
+import notificationService from "../features/notification/service/notificationChatService"; // 👈 استيراد السيرفس (تأكد من المسار)
 
 const Header = ({ isDark, onToggleTheme }) => {
   const name = useSelector((state) => state.auth.name);

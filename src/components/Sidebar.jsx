@@ -7,8 +7,8 @@ import {
   closeMobileMenu,
   showSnackbar,
 } from "../features/uiSlice";
-import { logout } from "../features/auth/authSlice";
-import { useLogoutMutation } from "../services/authService";
+import { logout } from "../features/auth/store/authSlice";
+import { useLogoutMutation } from "../features/auth/service/authService";
 
 // MUI Icons المشتركة
 import MedicalServicesIcon from "@mui/icons-material/MedicalServices";
@@ -31,7 +31,7 @@ import ChatRoundedIcon from "@mui/icons-material/ChatRounded"; // مضاف من 
 import PersonIcon from "@mui/icons-material/Person"; // مضاف من main
 
 // استيراد المكون الجديد من فرع main
-import LogoutModal from "../pages/Login/Components/LogoutModal"; 
+import LogoutModal from "../features/auth/Components/LogoutModal"; 
 
 // دمج عناصر القائمة وتعديل الـ id لضمان عدم التكرار
 const navItems = [

@@ -10,7 +10,7 @@ import VerifyResetCodePage from "./features/auth/pages/VerifyResetCodePage";
 import NewPasswordPage from "./features/auth/pages/NewPasswordPage";
 
 import { applyThemeMode } from "./app/theme";
-import notificationService from "./services/notificationChatService"; // 💡 سيرفس الإشعارات الخاص بك
+import notificationService from "./features/notification/service/notificationChatService"; // 💡 سيرفس الإشعارات الخاص بك
 import AppSnackbar from "./components/AppSnackbar";
 import { hideSnackbar } from "./features/uiSlice";
 

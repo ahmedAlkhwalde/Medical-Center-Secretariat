@@ -7,7 +7,7 @@ import BookingModal from "./components/BookingModal";
 import {
   useSchedulesQuery,
   useSpecialtiesQuery,
-} from "../../services/scheduleService";
+} from "../../features/schedule/service/scheduleService";
 import {
   setDoctorsSchedule,
   mapApiScheduleToFrontend,

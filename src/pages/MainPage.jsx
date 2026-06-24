@@ -1,11 +1,11 @@
 import { Routes, Route } from "react-router-dom";
 import Layout from "../components/Layout";
-import SchedulePage from "./schedule/SchedulePage";
-import PatientsRecordsPage from "./patients/PatientsRecordsPage";
+import SchedulePage from "../features/schedule/pages/SchedulePage";
+import PatientsRecordsPage from "../features/patients/pages/PatientsRecordsPage";
 import AppointmentsPage from "../pages/appointment/AppointmentsPage";
-import ChatList from "../pages/conversation/ChatList";
-import Conversation from "../pages/conversation/Conversation"; 
-import NotificationPage from "../pages/notification/NotificationPage";
+import ChatList from "../features/chat/pages/ChatList";
+import Conversation from "../features/chat/pages/Conversation";
+import NotificationPage from "../features/notification/pages/NotificationPage";
 import ProfilePage from "../features/profile/pages/ProfilePage";
 
 export default function MainPage() {
@@ -36,6 +36,3 @@ export default function MainPage() {
     </div>
   );
 }
-
-
-

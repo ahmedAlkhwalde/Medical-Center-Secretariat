@@ -6,7 +6,7 @@ import AppointmentsPage from "../pages/appointment/AppointmentsPage";
 import ChatList from "../pages/conversation/ChatList";
 import Conversation from "../pages/conversation/Conversation"; 
 import NotificationPage from "../pages/notification/NotificationPage";
-import ProfilePage from "../pages/profile/ProfilePage";
+import ProfilePage from "../features/profile/pages/ProfilePage";
 
 export default function MainPage() {
   return (

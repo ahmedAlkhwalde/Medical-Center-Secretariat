@@ -1,46 +1,20 @@
-import { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { ArrowBack, CheckCircle } from "@mui/icons-material";
-import AuthInput from "./Components/AuthInput";
-import ResetAuthLayout from "./Components/ResetAuthLayout";
-
-// استدعاء الهوك المخصص (عدل المسار حسب مكان ملف الـ API عندك)
-import { useResetPasswordMutation } from "../../services/authService";
+import AuthInput from "../Components/AuthInput";
+import ResetAuthLayout from "../Components/ResetAuthLayout";
+import { useNewPasswordForm } from "../hooks/useNewPasswordForm"; // استيراد الـ Controller المخصص
 
 const NewPasswordPage = () => {
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [errors, setErrors] = useState({});
-
-  // جلب الهوك وحالة التحميل الخاصة بالـ API
-  const { mutate, isPending } = useResetPasswordMutation();
-
-  const validate = () => {
-    const nextErrors = {};
-    if (password.length < 8) {
-      nextErrors.password = "يجب أن تكون كلمة المرور 8 محارف على الأقل";
-    }
-    if (confirmPassword !== password) {
-      nextErrors.confirmPassword = "كلمتا المرور غير متطابقتين";
-    }
-    setErrors(nextErrors);
-    return Object.keys(nextErrors).length === 0;
-  };
-
-  const handleSubmit = (event) => {
-    event.preventDefault();
-    if (!validate()) return;
-
-    // جلب المعرّف (الإيميل) الذي قمنا بحفظه في الخطوة الأولى
-    const contact = sessionStorage.getItem("reset_identifier") || "";
-
-    // استدعاء الميوتيشن وتمرير البيانات للباك إيند بنفس بنية الـ Body المطلوبة
-    mutate({
-      contact,
-      password,
-      password_confirmation: confirmPassword,
-    });
-  };
+  // تفكيك عناصر التحكم الذكية من الهوك
+  const {
+    password,
+    setPassword,
+    confirmPassword,
+    setConfirmPassword,
+    errors,
+    isPending,
+    handleSubmit,
+  } = useNewPasswordForm();
 
   return (
     <ResetAuthLayout
@@ -86,7 +60,7 @@ const NewPasswordPage = () => {
           error={errors.password}
           onChange={(e) => setPassword(e.target.value)}
           placeholder="••••••••"
-          disabled={isPending} // تعطيل الحقل أثناء الإرسال
+          disabled={isPending}
         />
 
         <AuthInput
@@ -96,17 +70,16 @@ const NewPasswordPage = () => {
           error={errors.confirmPassword}
           onChange={(e) => setConfirmPassword(e.target.value)}
           placeholder="••••••••"
-          disabled={isPending} // تعطيل الحقل أثناء الإرسال
+          disabled={isPending}
         />
 
         <button
           type="submit"
-          disabled={isPending} // تعطيل الزر لمنع الإرسال المتكرر
+          disabled={isPending}
           className="w-full py-4 theme-accent theme-text-on-accent rounded-2xl font-black text-lg shadow-lg hover:opacity-90 transition-opacity flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
         >
           {isPending ? (
             <>
-              {/* Spinner مخصص لعملية الـ Loading */}
               <div className="w-6 h-6 border-4 border-t-transparent border-white rounded-full animate-spin"></div>
               <span>جاري حفظ كلمة المرور...</span>
             </>

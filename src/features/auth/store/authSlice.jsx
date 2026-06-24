@@ -85,13 +85,11 @@ const authSlice = createSlice({
         },
         state.rememberMe,
       );
-
     },
 
     updateProfileData: (state, action) => {
       const { name, image } = action.payload;
 
-      // 1. تحديث الاسم والصورة فقط داخل الـ State والمستند الداخلي user
       if (name !== undefined) {
         state.name = name;
         if (state.user) state.user.name = name;
@@ -105,7 +103,6 @@ const authSlice = createSlice({
       // 2. الحل الأضمن: أخذ نسخة صافية كاملة من الـ State الحالي
       // لضمان الحفاظ على الـ token وباقي بيانات الـ user (الإيميل، التاريخ، إلخ) دون أي تغيير
       const cleanState = current(state);
-
 
       // 3. حفظ البيانات في الـ Storage مع الإبقاء على كل شيء آخر كما هو تماماً
       writeStoredAuth(

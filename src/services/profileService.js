@@ -1,6 +1,6 @@
 import apiClient from '../config/apiClient';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { updateProfileData } from "../features/auth/authSlice";
+import { updateProfileData } from "../features/auth/store/authSlice";
 import { useDispatch } from "react-redux";
 export const fetchProfile = () => {
   return apiClient.get('/admin/profile/me');

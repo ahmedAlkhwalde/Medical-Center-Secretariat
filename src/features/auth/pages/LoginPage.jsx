@@ -1,112 +1,22 @@
-import React, { useState, useEffect } from "react";
-import { useLocation, useNavigate, Link } from "react-router-dom";
-import { useDispatch, useSelector } from "react-redux";
-import {
-  toggleRememberMe,
-  setCredentials,
-} from "../../features/auth/authSlice";
-import { showSnackbar, hideSnackbar } from "../../features/uiSlice";
-import AuthInput from "./Components/AuthInput";
+import { Link } from "react-router-dom";
+import { useLoginForm } from "../hooks/useLoginForm"; // استيراد الهوك المطور
+import AuthInput from "../Components/AuthInput";
 import { motion as Motion } from "framer-motion";
 import LoginIcon from "@mui/icons-material/Login";
-import { useLoginMutation } from "../../services/authService";
 
 const LoginPage = () => {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [errors, setErrors] = useState({});
-  const [pendingRedirect, setPendingRedirect] = useState(false);
-
-  const dispatch = useDispatch();
-  const navigate = useNavigate();
-  const loginMutation = useLoginMutation();
-
-  // نراقب الـ token والـ rememberMe من الـ Redux
-  const { rememberMe, token, lastUsedEmail } = useSelector(
-    (state) => state.auth,
-  );
-
-  // --- أفضل مكان للانتقال ---
-  // نراقب الـ token؛ بمجرد وجوده، يتم الانتقال تلقائياً
-  useEffect(() => {
-    if (!token) return;
-    if (!pendingRedirect) {
-      navigate("/main-page");
-      return;
-    }
-    const timer = setTimeout(() => {
-      navigate("/main-page");
-    }, 700);
-    return () => clearTimeout(timer);
-  }, [token, pendingRedirect, navigate]);
-
-  useEffect(() => {
-    if (lastUsedEmail) {
-      // setEmail(lastUsedEmail);
-    }
-  }, [lastUsedEmail]);
-
-  const validate = () => {
-    const tempErrors = {};
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      tempErrors.email = "يرجى إدخال بريد إلكتروني صحيح";
-    }
-    if (password.length < 8) {
-      tempErrors.password = "يجب أن تكون كلمة المرور 8 محارف على الأقل";
-    }
-    setErrors(tempErrors);
-    return Object.keys(tempErrors).length === 0;
-  };
-
-  const handleLogin = (e) => {
-    e.preventDefault();
-    dispatch(hideSnackbar());
-    setErrors({});
-    if (validate()) {
-      loginMutation.mutate(
-        { email, password },
-        {
-          onSuccess: (data) => {
-            if (!data?.token) {
-              dispatch(
-                showSnackbar({
-                  message: "تعذر تسجيل الدخول. الرجاء المحاولة لاحقاً.",
-                  variant: "error",
-                }),
-              );
-              return;
-            }
-
-            dispatch(
-              setCredentials({
-                token: data.token,
-                user: data.user ?? null,
-                rememberMe,
-                lastUsedEmail: email,
-              }),
-            );
-            
-            console.log(data.user);
-            dispatch(
-              showSnackbar({
-                message: "تم تسجيل الدخول بنجاح",
-                variant: "success",
-              }),
-            );
-            setPendingRedirect(true);
-          },
-          onError: (error) => {
-            dispatch(
-              showSnackbar({
-                message: "تعذر تسجيل الدخول. تحقق من البيانات.",
-                variant: "error",
-              }),
-            );
-          },
-        },
-      );
-    }
-  };
+  // استدعاء البيانات والأكشنز الجاهزة من الـ Controller
+  const {
+    email,
+    setEmail,
+    password,
+    setPassword,
+    errors,
+    rememberMe,
+    isPending,
+    handleLogin,
+    handleToggleRememberMe,
+  } = useLoginForm();
 
   return (
     <div
@@ -129,7 +39,8 @@ const LoginPage = () => {
             إدارة الاستقبال <br /> مركز الشفاء
           </Motion.h1>
           <p className="text-lg theme-text-on-accent opacity-80 font-medium leading-relaxed">
-            منصتكِ اليومية لتنظيم تدفق المرضى، جدولة الحجوزات بدقة، وتنسيق مواعيد العيادات لضمان تقديم خدمة استقبال متميزة وسلسة.
+            منصتكِ اليومية لتنظيم تدفق المرضى، جدولة الحجوزات بدقة، وتنسيق
+            مواعيد العيادات لضمان تقديم خدمة استقبال متميزة وسلسة.
           </p>
         </div>
 
@@ -144,12 +55,6 @@ const LoginPage = () => {
                 أدخل بياناتك للوصول إلى لوحة التحكم
               </p>
             </div>
-
-            {/* {passwordResetSuccess ? (
-              <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-3 text-right text-sm font-semibold text-emerald-700 dark:text-emerald-300">
-                تم تغيير كلمة المرور بنجاح. يمكنك تسجيل الدخول بالكلمة الجديدة.
-              </div>
-            ) : null} */}
 
             <AuthInput
               label="البريد الإلكتروني"
@@ -169,12 +74,15 @@ const LoginPage = () => {
               placeholder="••••••••"
             />
 
+            {/* زر تذكر الجلسة */}
             <div
               className="flex items-center gap-3 cursor-pointer select-none"
-              onClick={() => dispatch(toggleRememberMe())}
+              onClick={handleToggleRememberMe}
             >
               <div
-                className={`relative w-11 h-6 rounded-full transition-all flex items-center px-1 ${rememberMe ? "theme-accent" : "bg-gray-300 dark:bg-gray-700"}`}
+                className={`relative w-11 h-6 rounded-full transition-all flex items-center px-1 ${
+                  rememberMe ? "theme-accent" : "bg-gray-300 dark:bg-gray-700"
+                }`}
               >
                 <Motion.div
                   layout
@@ -187,12 +95,13 @@ const LoginPage = () => {
               </span>
             </div>
 
+            {/* زر تأكيد الدخول مع تفقد حالة التحميل */}
             <button
               type="submit"
-              disabled={loginMutation.isPending}
+              disabled={isPending}
               className="w-full py-4 theme-accent theme-text-on-accent rounded-2xl font-black text-lg shadow-lg hover:opacity-90 transition-opacity flex items-center justify-center gap-2 disabled:opacity-60"
             >
-              {loginMutation.isPending ? (
+              {isPending ? (
                 <span className="flex items-center gap-2">
                   <span className="inline-flex h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
                   <span>جاري الدخول...</span>

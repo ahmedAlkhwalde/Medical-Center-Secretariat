@@ -1,41 +1,17 @@
-import { useState } from "react";
 import { Link } from "react-router-dom";
 import { ArrowBack, ArrowForward, MarkEmailUnread } from "@mui/icons-material";
-import AuthInput from "./Components/AuthInput";
-import ResetAuthLayout from "./Components/ResetAuthLayout";
-
-// استدعاء الهوك الجديد (عدل المسار حسب مكان حفظ الملف السابق)
-import { useForgotPasswordMutation } from "../../services/authService"; 
+import AuthInput from "../Components/AuthInput";
+import ResetAuthLayout from "../Components/ResetAuthLayout";
+import { useForgotPasswordForm } from "../hooks/useForgotPasswordForm"; // استيراد الـ Controller
 
 const ForgotPasswordPage = () => {
-  const [identifier, setIdentifier] = useState("");
-  const [error, setError] = useState("");
-
-  // استدعاء الميوتيشن والـ loading مباشرة من ملف الـ API
-  const { mutate, isPending } = useForgotPasswordMutation();
-
-  const validate = () => {
-    const value = identifier.trim();
-    if (!value) {
-      setError("أدخل البريد الإلكتروني");
-      return false;
-    }
-    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailPattern.test(value)) {
-      setError("الرجاء إدخال بريد إلكتروني صحيح");
-      return false;
-    }
-    setError("");
-    return true;
-  };
-
-  const handleSubmit = (event) => {
-    event.preventDefault();
-    if (!validate()) return;
-
-    // تشغيل الـ API وتمرير الإيميل كـ الـ variables للهوك
-    mutate(identifier.trim());
-  };
+  const {
+    identifier,
+    setIdentifier,
+    error,
+    isPending,
+    handleSubmit,
+  } = useForgotPasswordForm();
 
   return (
     <ResetAuthLayout
@@ -91,7 +67,6 @@ const ForgotPasswordPage = () => {
         >
           {isPending ? (
             <>
-              {/* الـ Spinner أثناء عملية التحميل */}
               <div className="w-6 h-6 border-4 border-t-transparent border-white rounded-full animate-spin"></div>
               <span>جاري الإرسال...</span>
             </>

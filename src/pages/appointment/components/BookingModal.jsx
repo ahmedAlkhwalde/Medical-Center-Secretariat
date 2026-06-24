@@ -189,6 +189,7 @@ const BookingModal = ({ doctor, onClose, selectedDate }) => {
       let durationMinutes = 20;
       if (doctor.slot) {
         const slotParts = doctor.slot.split(":");
+        console.log("slot parts:", slotParts);
         if (slotParts.length >= 2) {
           durationMinutes = Number(slotParts[0]) * 60 + Number(slotParts[1]);
         }

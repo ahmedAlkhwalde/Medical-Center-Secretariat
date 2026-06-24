@@ -4,10 +4,10 @@ import { Route, Routes, Navigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 
 import MainPage from "./pages/MainPage";
-import LoginPage from "./pages/Login/LoginPage";
-import ForgotPasswordPage from "./pages/Login/ForgotPasswordPage";
-import VerifyResetCodePage from "./pages/Login/VerifyResetCodePage";
-import NewPasswordPage from "./pages/Login/NewPasswordPage";
+import LoginPage from "./features/auth/pages/LoginPage";
+import ForgotPasswordPage from "./features/auth/pages/ForgotPasswordPage";
+import VerifyResetCodePage from "./features/auth/pages/VerifyResetCodePage";
+import NewPasswordPage from "./features/auth/pages/NewPasswordPage";
 
 import { applyThemeMode } from "./app/theme";
 import notificationService from "./services/notificationChatService"; // 💡 سيرفس الإشعارات الخاص بك

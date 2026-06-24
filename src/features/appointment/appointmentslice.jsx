@@ -63,7 +63,8 @@ export const mapApiScheduleToFrontend = (apiData) => {
     const doctorObj = item.doctlor || item.doctor || {}; // التعامل الآمن مع الـ Typo لقاعدة البيانات
     const startHour = item.start_time ? item.start_time.substring(0, 5) : "00:00";
     const endHour = item.end_time ? item.end_time.substring(0, 5) : "00:00";
-
+    console.log("doctor obj: ",doctorObj);
+    console.log("doctor slot slice : ",doctorObj.slot);
     return {
       id: doctorObj.uuid || item.uuid,
       scheduleUuid: item.uuid,
@@ -71,8 +72,8 @@ export const mapApiScheduleToFrontend = (apiData) => {
       specialty: item.specialty.name || "غير معروف",
       day: dayMapping[item.day_name_en] || "SUN",
       time: "ALL_DAY_SHIFTS", // توحيد القيمة مع الـ TIME_SLOTS ليظهر الطبيب بالجدول فوراً
-      workingHours: `from : ${startHour} to : ${endHour}`, // تمرير التوقيت الفعلي والمطوّر للمودال
-      slot: doctorObj.slot || "00:20:00", // فترة المعاينة الديناميكية الخاصة بكل طبيب
+      workingHours: `from : ${startHour} to : ${endHour}`, 
+      slot: doctorObj.slot || "00:20:00",
       room: item.clinic?.name ? item.clinic.name.replace("عيادة ", "") : "101",
       isActive: item.is_active
     };

@@ -9,7 +9,7 @@ import {
   setSpecialty,
   setDoctorFilter,
   resetToToday,
-} from "../../../features/appointment/appointmentslice";
+} from "../../../features/appointment/store/appointmentslice";
 
 const ScheduleFilters = ({
   specialties, // استقبال التخصصات هنا
@@ -23,7 +23,7 @@ const ScheduleFilters = ({
 }) => {
   const dispatch = useDispatch();
   const { doctorsSchedule, selectedSpecialty, selectedDoctorId } = useSelector(
-    (state) => state.appointment
+    (state) => state.appointment,
   );
 
   // حساب قيم تاريخ اليوم الحالي الحقيقي بدقة للمقارنة الشرطية
@@ -57,28 +57,37 @@ const ScheduleFilters = ({
       transition={{ duration: 0.4, delay: 0.1 }}
       className="flex flex-wrap items-center gap-3 theme-surface rounded-3xl p-2 shadow-sm border theme-border"
     >
-    
       <div className="h-6 w-px theme-border hidden sm:block" />
 
       {/* السنة */}
       <select
         value={selectedYear}
-        onChange={(e) => { setSelectedYear(Number(e.target.value)); setSelectedWeek(0); }}
+        onChange={(e) => {
+          setSelectedYear(Number(e.target.value));
+          setSelectedWeek(0);
+        }}
         className="text-xs sm:text-sm font-semibold theme-text theme-surface rounded-xl py-2.5 px-3 outline-none cursor-pointer border theme-border"
       >
         {YEARS.map((y) => (
-          <option key={y} value={y}>{y}</option>
+          <option key={y} value={y}>
+            {y}
+          </option>
         ))}
       </select>
 
       {/* الشهر */}
       <select
         value={selectedMonth}
-        onChange={(e) => { setSelectedMonth(e.target.value); setSelectedWeek(0); }}
+        onChange={(e) => {
+          setSelectedMonth(e.target.value);
+          setSelectedWeek(0);
+        }}
         className="text-xs sm:text-sm font-semibold theme-text theme-surface rounded-xl py-2.5 px-3 outline-none cursor-pointer border theme-border"
       >
         {MONTHS.map((m, idx) => (
-          <option key={m} value={m}>{MONTHS_AR[idx]}</option>
+          <option key={m} value={m}>
+            {MONTHS_AR[idx]}
+          </option>
         ))}
       </select>
 

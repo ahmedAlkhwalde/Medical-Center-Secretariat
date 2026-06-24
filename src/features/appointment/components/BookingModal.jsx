@@ -1,5 +1,3 @@
-import { useMemo, useRef, useState, useEffect } from "react";
-import { useDispatch, useSelector } from "react-redux";
 import { motion as Motion } from "framer-motion";
 import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
 import CancelIcon from "@mui/icons-material/Cancel";
@@ -14,493 +12,43 @@ import EditIcon from "@mui/icons-material/Edit";
 import CircularProgress from "@mui/material/CircularProgress";
 import SearchIcon from "@mui/icons-material/Search";
 import CakeIcon from "@mui/icons-material/Cake";
-import { useQueryClient } from "@tanstack/react-query";
-import { collection, query, where, onSnapshot } from "firebase/firestore";
-import { db } from "../../../firebase";
+import { getSpecialtyLabel, DAY_LABELS } from "../../../features/appointment/store/appointmentslice";
+import { useBookingModal } from "../hooks/useBookingModal";
 
-import {
-  useGetDoctorAppointments,
-  useUpdateToWaitingMutation,
-  useUpdateToPaidMutation,
-  useCreatePatientMutation,
-  useUpdatePatientMutation,
-  useDeletePatientMutation,
-  useSearchPatients,
-  useAddAppointmentMutation,
-  useDeleteAppointmentMutation,
-  useUpdateAppointmentMutation,
-  useRealTimeAllAppointments,
-} from "../../../services/appointmentService";
-
-import {
-  addAppointment,
-  deleteAppointment,
-  getSpecialtyLabel,
-  DAY_LABELS,
-} from "../../../features/appointment/appointmentslice";
-import { showSnackbar } from "../../../features/uiSlice";
-
-const calculateAge = (dateString) => {
-  if (!dateString) return "";
-  const birthDate = new Date(dateString);
-  const today = new Date();
-  let age = today.getFullYear() - birthDate.getFullYear();
-  const m = today.getMonth() - birthDate.getMonth();
-  if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
-    age--;
-  }
-  return age;
-};
-
-// ✅ الحالات التي يُسمح فيها بسحب ونقل البطاقة
 const isMovableStatus = (status) =>
   status === "has booked" || status === "has changed";
 
 const BookingModal = ({ doctor, onClose, selectedDate }) => {
-  const user = useSelector((state) => state.auth.user.uuid);
-  useRealTimeAllAppointments(user);
-  const dispatch = useDispatch();
-  const scrollRef = useRef(null);
-  const queryClient = useQueryClient();
-
-  const { appointments, selectedWeek } = useSelector(
-    (state) => state.appointment,
-  );
-
-  const { data: apiData, isLoading: isApiLoading } = useGetDoctorAppointments(
-    doctor.id,
-    selectedDate,
-  );
-
-  const updateToWaitingMutation = useUpdateToWaitingMutation();
-  const updateToPaidMutation = useUpdateToPaidMutation();
-  const addAppointmentServerMutation = useAddAppointmentMutation();
-  const deleteAppointmentServerMutation = useDeleteAppointmentMutation();
-  const updateAppointmentMutation = useUpdateAppointmentMutation();
-
-  const createPatientMutation = useCreatePatientMutation();
-  const updatePatientMutation = useUpdatePatientMutation();
-  const deletePatientMutation = useDeletePatientMutation();
-
-  const [activePatient, setActivePatient] = useState(null);
-  const [debouncedSearch, setDebouncedSearch] = useState("");
-  const [editingPatientUuid, setEditingPatientUuid] = useState(null);
-  // ✅ الخانة الزمنية التي يتم إضافة أو نقل حجز إليها حالياً (لإظهار لودر خفيف عليها فقط)
-  const [pendingSlot, setPendingSlot] = useState(null);
-  // ✅ تتبع ما إذا كان هناك سحب نشط فوق خانة مشغولة (لتغيير cursor)
-  const [dragOverBusySlot, setDragOverBusySlot] = useState(false);
-
-  const [patientForm, setPatientForm] = useState({
-    name: "",
-    nick_name: "",
-    phone: "",
-    date_of_birth: "",
-    gender: "male",
-  });
-
-  useEffect(() => {
-    const handler = setTimeout(() => {
-      setDebouncedSearch(patientForm.name);
-    }, 400);
-    return () => clearTimeout(handler);
-  }, [patientForm.name]);
-
-  const { data: serverSearchResults, isFetching: isSearching } =
-    useSearchPatients(debouncedSearch);
-
-  const displayPatientsList = useMemo(() => {
-    if (debouncedSearch.trim().length > 0) {
-      if (!serverSearchResults) return [];
-      return Array.isArray(serverSearchResults)
-        ? serverSearchResults
-        : serverSearchResults.data || [];
-    }
-    return activePatient ? [activePatient] : [];
-  }, [debouncedSearch, serverSearchResults, activePatient]);
-
-  const getFormattedDate = (dayName, weekOffset = 0) => {
-    const now = new Date();
-    const dayIndexMap = {
-      SUN: 0, MON: 1, TUE: 2, WED: 3, THU: 4, FRI: 5, SAT: 6,
-    };
-    const targetDayIndex = dayIndexMap[dayName?.toUpperCase()];
-    let diff = targetDayIndex - now.getDay();
-    diff += weekOffset * 7;
-    const targetDate = new Date(now);
-    targetDate.setDate(now.getDate() + diff);
-    return targetDate.toLocaleDateString("en-GB");
-  };
-
-  const getYYYYMMDDStr = (dayName, weekOffset = 0) => {
-    if (!dayName) return "";
-    const now = new Date();
-    const dayIndexMap = {
-      SUN: 0, MON: 1, TUE: 2, WED: 3, THU: 4, FRI: 5, SAT: 6,
-    };
-    const targetDayIndex = dayIndexMap[dayName.toUpperCase()];
-    let diff = targetDayIndex - now.getDay();
-    diff += weekOffset * 7;
-    const targetDate = new Date(now);
-    targetDate.setDate(now.getDate() + diff);
-    const yyyy = targetDate.getFullYear();
-    const mm = String(targetDate.getMonth() + 1).padStart(2, "0");
-    const dd = String(targetDate.getDate()).padStart(2, "0");
-    return `${yyyy}-${mm}-${dd}`;
-  };
-
-  const targetDateISO = useMemo(() => {
-    if (selectedDate) {
-      if (typeof selectedDate === "string") return selectedDate.split(" ")[0];
-      if (selectedDate instanceof Date) {
-        const yyyy = selectedDate.getFullYear();
-        const mm = String(selectedDate.getMonth() + 1).padStart(2, "0");
-        const dd = String(selectedDate.getDate()).padStart(2, "0");
-        return `${yyyy}-${mm}-${dd}`;
-      }
-    }
-    return getYYYYMMDDStr(doctor?.day, selectedWeek);
-  }, [doctor?.day, selectedWeek, selectedDate]);
-
-  const displayFormattedDate = useMemo(() => {
-    if (selectedDate) {
-      const d = new Date(selectedDate);
-      return d.toLocaleDateString("en-GB");
-    }
-    return getFormattedDate(doctor?.day, selectedWeek);
-  }, [doctor?.day, selectedWeek, selectedDate]);
-
-  const handleDragOver = (e) => {
-    e.preventDefault();
-    if (!scrollRef.current) return;
-    const container = scrollRef.current;
-    const { top, bottom } = container.getBoundingClientRect();
-    if (e.clientY < top + 80) container.scrollTop -= 20;
-    else if (e.clientY > bottom - 80) container.scrollTop += 20;
-  };
-
-  const slots = useMemo(() => {
-    if (!doctor?.workingHours) return [];
-    try {
-      const matches = doctor.workingHours.match(/(\d{2}):(\d{2})/g);
-      if (!matches || matches.length < 2) return [];
-      const [startStr, endStr] = matches;
-      const [startHours, startMinutes] = startStr.split(":").map(Number);
-      const [endHours, endMinutes] = endStr.split(":").map(Number);
-      let durationMinutes = 20;
-      if (doctor.slot) {
-        const slotParts = doctor.slot.split(":");
-        console.log("slot parts:", slotParts);
-        if (slotParts.length >= 2) {
-          durationMinutes = Number(slotParts[0]) * 60 + Number(slotParts[1]);
-        }
-      }
-      if (durationMinutes <= 0) durationMinutes = 20;
-      const timeSlots = [];
-      let currentTotalMinutes = startHours * 60 + startMinutes;
-      const endTotalMinutes = endHours * 60 + endMinutes;
-      while (currentTotalMinutes < endTotalMinutes) {
-        const h = Math.floor(currentTotalMinutes / 60);
-        const m = currentTotalMinutes % 60;
-        timeSlots.push(
-          `${h.toString().padStart(2, "0")}:${m.toString().padStart(2, "0")}`,
-        );
-        currentTotalMinutes += durationMinutes;
-      }
-      return timeSlots;
-    } catch (error) {
-      console.error("Error parsing dynamic doctor slots:", error);
-      return [];
-    }
-  }, [doctor]);
-
-  // ✅ مفتاح الكاش الموحّد لهذا الطبيب وهذا التاريخ
-  const appointmentsQueryKey = useMemo(
-    () => ["doctorAppointments", doctor.id, selectedDate],
-    [doctor.id, selectedDate],
-  );
-
-  const addAppointmentToCache = (newAppointment) => {
-    queryClient.setQueryData(appointmentsQueryKey, (old) => {
-      if (!old) return old;
-      const oldAppointments = old.appointments || [];
-      return { ...old, appointments: [...oldAppointments, newAppointment] };
-    });
-  };
-
-  const updateAppointmentTimeInCache = (appointmentUuid, newTime) => {
-    queryClient.setQueryData(appointmentsQueryKey, (old) => {
-      if (!old) return old;
-      const oldAppointments = old.appointments || [];
-      return {
-        ...old,
-        appointments: oldAppointments.map((app) => {
-          if (app.uuid !== appointmentUuid) return app;
-          const cleanDateTime = (app.date_time || "").replace("T", " ");
-          const [datePart] = cleanDateTime.split(" ");
-          return { ...app, date_time: `${datePart || targetDateISO} ${newTime}:00` };
-        }),
-      };
-    });
-  };
-
-  const upsertAppointmentInCache = (appointmentData) => {
-    queryClient.setQueryData(appointmentsQueryKey, (old) => {
-      const oldAppointments = old?.appointments || [];
-      const existingIndex = oldAppointments.findIndex(
-        (app) => app.uuid === appointmentData.uuid,
-      );
-      let newAppointments;
-      if (existingIndex !== -1) {
-        newAppointments = [...oldAppointments];
-        newAppointments[existingIndex] = {
-          ...newAppointments[existingIndex],
-          ...appointmentData,
-        };
-      } else {
-        newAppointments = [...oldAppointments, appointmentData];
-      }
-      return { ...(old || {}), appointments: newAppointments };
-    });
-  };
-
-  const removeAppointmentFromCache = (appointmentUuid) => {
-    queryClient.setQueryData(appointmentsQueryKey, (old) => {
-      if (!old) return old;
-      const oldAppointments = old.appointments || [];
-      return {
-        ...old,
-        appointments: oldAppointments.filter((app) => app.uuid !== appointmentUuid),
-      };
-    });
-  };
-
-  useEffect(() => {
-    if (!doctor?.id) return;
-    const appointmentsRef = collection(db, "appointments");
-    const realtimeQuery = query(
-      appointmentsRef,
-      where("user_uuid", "==", doctor.id),
-    );
-    const unsubscribe = onSnapshot(
-      realtimeQuery,
-      (snapshot) => {
-        snapshot.docChanges().forEach((change) => {
-          const docData = change.doc.data();
-          const docUuid = docData.uuid || docData.id || change.doc.id;
-          const rawDateTime = docData.date_time || "";
-          const cleanDateTime = rawDateTime.replace("T", " ");
-          const [docDatePart] = cleanDateTime.split(" ");
-          if (docDatePart && docDatePart !== targetDateISO) return;
-          if (change.type === "added" || change.type === "modified") {
-            const appointmentData = {
-              uuid: docUuid,
-              name: docData.name,
-              nick_name: docData.nick_name || docData.nickname || "",
-              phone: docData.phone || "لا يوجد هاتف",
-              age: docData.age || "",
-              gender: docData.gender,
-              status: docData.status,
-              date_time: cleanDateTime || `${targetDateISO} 00:00:00`,
-            };
-            upsertAppointmentInCache(appointmentData);
-          } else if (change.type === "removed") {
-            removeAppointmentFromCache(docUuid);
-          }
-        });
-      },
-      (error) => console.error("❌ [Firebase Realtime Error]:", error),
-    );
-    return () => unsubscribe();
-  }, [doctor?.id, targetDateISO, appointmentsQueryKey, queryClient]);
-
-  // ✅ دالة مساعدة: هل الخانة مشغولة؟
-  const isSlotBusy = (slot) => {
-    const apiAppointments = apiData?.appointments || [];
-    const apiMatch = apiAppointments.find((app) => {
-      if (!app.date_time) return false;
-      const [datePart, timePart] = app.date_time.replace("T", " ").split(" ");
-      return datePart === targetDateISO && timePart?.substring(0, 5) === slot;
-    });
-    const localMatch = appointments.find(
-      (a) => a.doctorId === doctor.id && a.timeSlot === slot,
-    );
-    return !!(apiMatch || localMatch);
-  };
-
-  const handleDrop = async (e, targetSlot) => {
-    e.preventDefault();
-    setDragOverBusySlot(false);
-
-    if (isSlotBusy(targetSlot)) {
-      dispatch(
-        showSnackbar({
-          message: "لا يمكن وضع بطاقة في خانة مشغولة",
-          variant: "error",
-        }),
-      );
-      return;
-    }
-
-    const patientData = e.dataTransfer.getData("patient");
-    const moveData = e.dataTransfer.getData("moveAppointment");
-
-    if (patientData) {
-      const p = JSON.parse(patientData);
-      const patientUuid = p.uuid || p.id;
-
-      // ✅ لودر خفيف على الخانة المستهدفة فقط
-      setPendingSlot(targetSlot);
-
-      addAppointmentServerMutation.mutate(
-        {
-          patientUuid: patientUuid,
-          appointmentData: {
-            date: targetDateISO,
-            time: targetSlot,
-            DoctorUuid: doctor.id,
-            Type: "check",
-          },
-        },
-        {
-          onSuccess: (res) => {
-            const created = res?.data || res?.appointment || res || {};
-            const newAppointment = {
-              uuid: created.uuid || created.id,
-              name: created.name || p.name,
-              nick_name:
-                created.nick_name ||
-                created.nickname ||
-                p.nick_name ||
-                p.nickname ||
-                "",
-              phone: created.phone || p.phone || "لا يوجد هاتف",
-              age:
-                created.age ??
-                (p.date_of_birth || p.birthday
-                  ? calculateAge(p.date_of_birth || p.birthday)
-                  : ""),
-              gender: created.gender || p.gender,
-              status: created.status || "has booked",
-              date_time:
-                created.date_time || `${targetDateISO} ${targetSlot}:00`,
-            };
-            if (newAppointment.uuid) {
-              addAppointmentToCache(newAppointment);
-            } else {
-              queryClient.invalidateQueries({ queryKey: appointmentsQueryKey });
-            }
-            dispatch(
-              showSnackbar({ message: "تم إضافة الحجز بنجاح", variant: "success" }),
-            );
-            setPendingSlot(null);
-          },
-          onError: (error) => {
-            console.error("Failed to save appointment on the server:", error);
-            dispatch(
-              showSnackbar({ message: "فشل إضافة الحجز", variant: "error" }),
-            );
-            setPendingSlot(null);
-          },
-        },
-      );
-    } else if (moveData) {
-      const { fromSlot, patient } = JSON.parse(moveData);
-      if (fromSlot === targetSlot) return;
-
-      // ✅ التحقق من الحالة القابلة للنقل
-      if (!isMovableStatus(patient.status)) {
-        dispatch(
-          showSnackbar({
-            message: "لا يمكن تحريك موعد في حالة انتظار أو مدفوع",
-            variant: "error",
-          }),
-        );
-        return;
-      }
-
-      if (patient.uuid && patient.isApiData) {
-        // ✅ لودر خفيف على الخانة الهدف بنفس منطق الإضافة
-        setPendingSlot(targetSlot);
-
-        updateAppointmentMutation.mutate(
-          { id: patient.uuid, updatedData: { time: targetSlot } },
-          {
-            onSuccess: () => {
-              updateAppointmentTimeInCache(patient.uuid, targetSlot);
-              dispatch(
-                showSnackbar({ message: "تم نقل الموعد بنجاح", variant: "success" }),
-              );
-              setPendingSlot(null);
-            },
-            onError: (error) => {
-              console.error(error, "Error updating appointment time on server");
-              dispatch(
-                showSnackbar({ message: "فشل نقل الموعد", variant: "error" }),
-              );
-              setPendingSlot(null);
-            },
-          },
-        );
-      } else {
-        // نقل محلي فقط (لا يوجد uuid)
-        dispatch(deleteAppointment({ doctorId: doctor.id, timeSlot: fromSlot }));
-        dispatch(
-          addAppointment({
-            ...patient,
-            timeSlot: targetSlot,
-            bookingDate: displayFormattedDate,
-          }),
-        );
-      }
-    }
-  };
-
-  const handleSavePatient = () => {
-    if (!patientForm.name || !patientForm.phone) return;
-    if (editingPatientUuid) {
-      updatePatientMutation.mutate(
-        { uuid: editingPatientUuid, patientData: patientForm },
-        {
-          onSuccess: (res) => {
-            if (res && res.data) setActivePatient(res.data);
-            clearPatientForm();
-          },
-        },
-      );
-    } else {
-      createPatientMutation.mutate(patientForm, {
-        onSuccess: (res) => {
-          if (res) setActivePatient(res);
-          clearPatientForm();
-        },
-      });
-    }
-  };
-
-  const handleDeletePatient = (uuid) => {
-    deletePatientMutation.mutate(uuid, {
-      onSuccess: () => {
-        setActivePatient(null);
-        if (editingPatientUuid === uuid) clearPatientForm();
-      },
-    });
-  };
-
-  const handleEditClick = (p) => {
-    setEditingPatientUuid(p.uuid);
-    setPatientForm({
-      name: p.name || "",
-      nick_name: p.nick_name || p.nickname || "",
-      phone: p.phone || "",
-      date_of_birth: p.birthday || p.date_of_birth || "",
-      gender: p.gender === "female" || p.gender === "Female" ? "female" : "male",
-    });
-  };
-
-  const clearPatientForm = () => {
-    setEditingPatientUuid(null);
-    setPatientForm({ name: "", nick_name: "", phone: "", date_of_birth: "", gender: "male" });
-  };
+  const {
+    scrollRef,
+    isApiLoading,
+    displayPatientsList,
+    isSearching,
+    patientForm,
+    editingPatientUuid,
+    pendingSlot,
+    dragOverBusySlot,
+    slots,
+    apiData,
+    appointments,
+    targetDateISO,
+    displayFormattedDate,
+    selectedWeek,
+    queryClient,
+    updateToWaitingMutation,
+    updateToPaidMutation,
+    deleteAppointmentServerMutation,
+    createPatientMutation,
+    updatePatientMutation,
+    handleDrop,
+    handleSavePatient,
+    handleDeletePatient,
+    handleEditClick,
+    clearPatientForm,
+    setPatientForm,
+    setPendingSlot,
+    setDragOverBusySlot,
+  } = useBookingModal({ doctor, selectedDate });
 
   if (!doctor) return null;
 
@@ -527,9 +75,7 @@ const BookingModal = ({ doctor, onClose, selectedDate }) => {
                 </div>
                 <h3 className="text-sm font-black theme-text">نتائج مطابقة السيرفر</h3>
               </div>
-              {isSearching && (
-                <CircularProgress size={16} className="theme-text-accent" />
-              )}
+              {isSearching && <CircularProgress size={16} className="theme-text-accent" />}
             </div>
 
             <div className="flex-1 overflow-y-auto space-y-3 mb-5 pr-1 no-scrollbar">
@@ -544,18 +90,13 @@ const BookingModal = ({ doctor, onClose, selectedDate }) => {
                   <div
                     key={p.uuid || p.id}
                     draggable
-                    onDragStart={(e) =>
-                      e.dataTransfer.setData("patient", JSON.stringify(p))
-                    }
+                    onDragStart={(e) => e.dataTransfer.setData("patient", JSON.stringify(p))}
                     className="p-4 rounded-2xl theme-surface border-2 border-solid theme-border cursor-grab shadow-md hover:shadow-lg transition-all group relative"
                   >
                     <div className="flex justify-between items-start pl-14">
                       <div>
                         <div className="font-black theme-text text-sm leading-tight">
-                          {p.name}{" "}
-                          {p.nick_name || p.nickname
-                            ? `(${p.nick_name || p.nickname})`
-                            : ""}
+                          {p.name} {p.nick_name || p.nickname ? `(${p.nick_name || p.nickname})` : ""}
                         </div>
                         <div className="flex flex-col gap-0.5 mt-2 text-xs theme-text-muted font-bold">
                           <span className="flex items-center gap-1">
@@ -606,10 +147,7 @@ const BookingModal = ({ doctor, onClose, selectedDate }) => {
                   {editingPatientUuid ? "تعديل بيانات المريض الحالية" : "بيانات الحساب الجديد"}
                 </span>
                 {editingPatientUuid && (
-                  <button
-                    onClick={clearPatientForm}
-                    className="text-[10px] text-red-500 font-bold hover:underline"
-                  >
+                  <button onClick={clearPatientForm} className="text-[10px] text-red-500 font-bold hover:underline">
                     إلغاء التعديل
                   </button>
                 )}
@@ -621,9 +159,7 @@ const BookingModal = ({ doctor, onClose, selectedDate }) => {
                     placeholder="الاسم الكامل (بحث / إنشاء)..."
                     className="w-full p-2.5 pl-8 theme-bg rounded-xl text-xs border-2 theme-border font-black outline-none theme-text focus:border-(--color-accent-primary)"
                     value={patientForm.name}
-                    onChange={(e) =>
-                      setPatientForm({ ...patientForm, name: e.target.value })
-                    }
+                    onChange={(e) => setPatientForm({ ...patientForm, name: e.target.value })}
                   />
                 </div>
                 <input
@@ -631,42 +167,32 @@ const BookingModal = ({ doctor, onClose, selectedDate }) => {
                   placeholder="اللقب / الكنية"
                   className="w-full p-2.5 theme-bg rounded-xl text-xs border theme-border outline-none theme-text"
                   value={patientForm.nick_name}
-                  onChange={(e) =>
-                    setPatientForm({ ...patientForm, nick_name: e.target.value })
-                  }
+                  onChange={(e) => setPatientForm({ ...patientForm, nick_name: e.target.value })}
                 />
                 <input
                   type="text"
                   placeholder="الهاتف"
                   className="w-full p-2.5 theme-bg rounded-xl text-xs border theme-border outline-none theme-text"
                   value={patientForm.phone}
-                  onChange={(e) =>
-                    setPatientForm({ ...patientForm, phone: e.target.value })
-                  }
+                  onChange={(e) => setPatientForm({ ...patientForm, phone: e.target.value })}
                 />
                 <input
                   type="date"
                   className="w-full p-2.5 theme-bg rounded-xl text-xs border theme-border theme-text outline-none"
                   value={patientForm.date_of_birth}
-                  onChange={(e) =>
-                    setPatientForm({ ...patientForm, date_of_birth: e.target.value })
-                  }
+                  onChange={(e) => setPatientForm({ ...patientForm, date_of_birth: e.target.value })}
                 />
                 <select
                   className="w-full p-2.5 theme-bg rounded-xl text-xs border theme-border theme-text outline-none cursor-pointer"
                   value={patientForm.gender}
-                  onChange={(e) =>
-                    setPatientForm({ ...patientForm, gender: e.target.value })
-                  }
+                  onChange={(e) => setPatientForm({ ...patientForm, gender: e.target.value })}
                 >
                   <option value="male">ذكر</option>
                   <option value="female">أنثى</option>
                 </select>
                 <button
                   onClick={handleSavePatient}
-                  disabled={
-                    createPatientMutation.isPending || updatePatientMutation.isPending
-                  }
+                  disabled={createPatientMutation.isPending || updatePatientMutation.isPending}
                   className="col-span-2 w-full py-2.5 theme-accent theme-text-on-accent font-black rounded-xl text-sm hover:shadow-lg transition-all flex items-center justify-center gap-2"
                 >
                   {createPatientMutation.isPending || updatePatientMutation.isPending ? (
@@ -685,21 +211,13 @@ const BookingModal = ({ doctor, onClose, selectedDate }) => {
           </aside>
 
           {/* الفترات الزمنية للمواعيد */}
-          <div
-            ref={scrollRef}
-            onDragOver={handleDragOver}
-            className="flex-1 space-y-4 overflow-y-auto no-scrollbar p-5 sm:p-6"
-          >
+          <div ref={scrollRef} className="flex-1 space-y-4 overflow-y-auto no-scrollbar p-5 sm:p-6">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
               <div>
-                <h2 className="text-3xl sm:text-4xl font-black theme-text">
-                  {doctor.name}
-                </h2>
+                <h2 className="text-3xl sm:text-4xl font-black theme-text">{doctor.name}</h2>
                 <p className="theme-text-muted font-bold text-sm mt-2 flex items-center gap-2">
                   <CalendarMonthIcon className="theme-text-accent" sx={{ fontSize: 18 }} />
-                  {getSpecialtyLabel(doctor.specialty)} •{" "}
-                  {DAY_LABELS[doctor.day] || doctor.day} ({displayFormattedDate}) • الأسبوع{" "}
-                  {selectedWeek + 1}
+                  {getSpecialtyLabel(doctor.specialty)} • {DAY_LABELS[doctor.day] || doctor.day} ({displayFormattedDate}) • الأسبوع {selectedWeek + 1}
                 </p>
               </div>
               <button
@@ -713,15 +231,12 @@ const BookingModal = ({ doctor, onClose, selectedDate }) => {
             {isApiLoading ? (
               <div className="flex flex-col items-center justify-center h-64 gap-3">
                 <CircularProgress color="inherit" className="theme-text-accent" />
-                <span className="text-sm font-bold theme-text-muted">
-                  جاري مزامنة المواعيد...
-                </span>
+                <span className="text-sm font-bold theme-text-muted">جاري مزامنة المواعيد...</span>
               </div>
             ) : (
               <div className="grid gap-3">
                 {slots.map((slot) => {
                   const apiAppointments = apiData?.appointments || [];
-
                   const apiMatch = apiAppointments.find((app) => {
                     if (!app.date_time) return false;
                     const cleanDateTime = app.date_time.replace("T", " ");
@@ -760,7 +275,6 @@ const BookingModal = ({ doctor, onClose, selectedDate }) => {
                   const isVisited = status === "has visited";
                   const isPaid = status === "paid";
 
-                  // ✅ قابل للسحب متى كان has booked أو has changed
                   const canDrag = !!booking && isMovableStatus(booking.status);
 
                   const isWaitingPending =
@@ -773,7 +287,6 @@ const BookingModal = ({ doctor, onClose, selectedDate }) => {
                     deleteAppointmentServerMutation.isPending &&
                     deleteAppointmentServerMutation.variables === booking?.uuid;
 
-                  // ✅ لودر خفيف على الخانة المستهدفة سواء كانت إضافة أو نقل
                   const isThisSlotPending = pendingSlot === slot;
 
                   return (
@@ -781,7 +294,6 @@ const BookingModal = ({ doctor, onClose, selectedDate }) => {
                       key={slot}
                       onDragOver={(e) => {
                         e.preventDefault();
-                        // ✅ تغيير cursor عند السحب فوق خانة مشغولة
                         if (booking && !isThisSlotPending) {
                           e.dataTransfer.dropEffect = "none";
                           setDragOverBusySlot(true);
@@ -801,57 +313,33 @@ const BookingModal = ({ doctor, onClose, selectedDate }) => {
                         );
                       }}
                       className={`relative p-5 sm:p-6 rounded-3xl border-2 transition-all flex flex-col gap-4 md:flex-row md:items-center md:justify-between
-                        ${booking
-                          ? isPaid
-                            ? "theme-border theme-accent-soft"
-                            : "theme-border theme-surface shadow-xl"
-                          : "border-dashed theme-border theme-bg/20"
-                        }
+                        ${booking ? (isPaid ? "theme-border theme-accent-soft" : "theme-border theme-surface shadow-xl") : "border-dashed theme-border theme-bg/20"}
                         ${isThisSlotPending ? "opacity-60 pointer-events-none" : ""}
-                        ${canDrag ? "cursor-grab active:cursor-grabbing" : ""}
-                      `}
+                        ${canDrag ? "cursor-grab active:cursor-grabbing" : ""}`}
                     >
-                      {/* ✅ لودر خفيف على الخانة المستهدفة (إضافة أو نقل) */}
                       {isThisSlotPending && (
                         <div className="absolute inset-0 z-10 flex items-center justify-center rounded-3xl theme-surface/60 backdrop-blur-[1px]">
                           <div className="flex items-center gap-2 px-4 py-2 rounded-2xl theme-surface border theme-border shadow-md">
                             <CircularProgress size={16} className="theme-text-accent" />
-                            <span className="text-xs font-bold theme-text-muted">
-                              جاري الحفظ...
-                            </span>
+                            <span className="text-xs font-bold theme-text-muted">جاري الحفظ...</span>
                           </div>
                         </div>
                       )}
 
                       <div className="flex flex-col gap-3 md:flex-row md:items-center md:gap-8">
-                        <div
-                          className={`text-2xl sm:text-3xl font-black ${
-                            isPaid
-                              ? "theme-text-accent"
-                              : booking
-                                ? "theme-text"
-                                : "opacity-30 theme-text"
-                          }`}
-                        >
+                        <div className={`text-2xl sm:text-3xl font-black ${isPaid ? "theme-text-accent" : booking ? "theme-text" : "opacity-30 theme-text"}`}>
                           {slot}
                         </div>
                         {booking ? (
                           <div>
                             <div className="flex items-center gap-3">
                               <span className="text-lg sm:text-xl font-black theme-text">
-                                {booking.patientName}{" "}
-                                {booking.nick_name ? `(${booking.nick_name})` : ""}
+                                {booking.patientName} {booking.nick_name ? `(${booking.nick_name})` : ""}
                               </span>
-                              <span
-                                className={`text-[11px] px-2 py-0.5 rounded-full font-black text-white ${
-                                  booking.gender === "Female" || booking.gender === "female"
-                                    ? "bg-pink-500"
-                                    : "bg-blue-500"
-                                }`}
-                              >
-                                {booking.gender === "Female" || booking.gender === "female"
-                                  ? "أنثى"
-                                  : "ذكر"}
+                              <span className={`text-[11px] px-2 py-0.5 rounded-full font-black text-white ${
+                                booking.gender === "Female" || booking.gender === "female" ? "bg-pink-500" : "bg-blue-500"
+                              }`}>
+                                {booking.gender === "Female" || booking.gender === "female" ? "أنثى" : "ذكر"}
                               </span>
                               <span className="text-[10px] theme-bg border theme-border theme-text-muted px-2 py-0.5 rounded-md font-bold">
                                 {isHasBooked && "تم الحجز"}
@@ -879,15 +367,13 @@ const BookingModal = ({ doctor, onClose, selectedDate }) => {
                             </div>
                           </div>
                         ) : (
-                          <div className="theme-text-muted opacity-60 font-bold text-sm">
-                            جاهز للحجز
-                          </div>
+                          <div className="theme-text-muted opacity-60 font-bold text-sm">جاهز للحجز</div>
                         )}
                       </div>
 
                       {booking && booking.isApiData && (
                         <div className="flex items-center gap-3">
-                          {(isHasBooked  || isChangig) && (
+                          {(isHasBooked || isChangig) && (
                             <button
                               onClick={() =>
                                 updateToWaitingMutation.mutate(booking.uuid, {

@@ -2,7 +2,7 @@ import { Routes, Route } from "react-router-dom";
 import Layout from "../components/Layout";
 import SchedulePage from "../features/schedule/pages/SchedulePage";
 import PatientsRecordsPage from "../features/patients/pages/PatientsRecordsPage";
-import AppointmentsPage from "../pages/appointment/AppointmentsPage";
+import AppointmentsPage from "../features/appointment/pages/AppointmentsPage";
 import ChatList from "../features/chat/pages/ChatList";
 import Conversation from "../features/chat/pages/Conversation";
 import NotificationPage from "../features/notification/pages/NotificationPage";

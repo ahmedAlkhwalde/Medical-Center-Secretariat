@@ -7,7 +7,7 @@ import {
   TIME_SLOTS,
   getSpecialtyLabel,
   formatRoom,
-} from "../../../features/appointment/appointmentslice";
+} from "../../../features/appointment/store/appointmentslice";
 
 const ScheduleGrid = ({ currentWeekDays, setActiveDoctor }) => {
   const { doctorsSchedule, selectedDoctorId, searchQuery } = useSelector(

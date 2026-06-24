@@ -2,7 +2,7 @@ import { motion as Motion } from "framer-motion";
 import MedicalServicesIcon from "@mui/icons-material/MedicalServices";
 import SearchIcon from "@mui/icons-material/Search";
 import { useDispatch } from "react-redux";
-import { setSearchQuery } from "../../../features/appointment/appointmentslice";
+import { setSearchQuery } from "../../../features/appointment/store/appointmentslice";
 
 const ScheduleHeader = () => {
   const dispatch = useDispatch();
@@ -21,7 +21,9 @@ const ScheduleHeader = () => {
             <MedicalServicesIcon />
           </div>
           <div>
-            <div className="text-xl font-black theme-text tracking-tight">إدارة الحجوزات</div>
+            <div className="text-xl font-black theme-text tracking-tight">
+              إدارة الحجوزات
+            </div>
             {/* <div className="text-xs theme-text-muted font-semibold">إدارة الحجوزات</div> */}
           </div>
         </div>

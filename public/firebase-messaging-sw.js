@@ -6,10 +6,11 @@ importScripts('https://www.gstatic.com/firebasejs/8.10.1/firebase-messaging.js')
 const firebaseConfig = {
   apiKey: "AIzaSyDC_PG6WCHGZpxFlQTRnysaivEI_szYslg",
   authDomain: "doctor-app-syria-2026.firebaseapp.com",
+  databaseURL: "https://doctor-app-syria-2026-default-rtdb.firebaseio.com",
   projectId: "doctor-app-syria-2026",
   storageBucket: "doctor-app-syria-2026.firebasestorage.app",
   messagingSenderId: "944253436216",
-  appId: "1:944253436216:web:81cdb24637f0426a1b01cd"
+  appId: "1:944253436216:web:ea706cb9924239371b01cd"
 };
 
 firebase.initializeApp(firebaseConfig);

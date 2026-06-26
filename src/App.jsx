@@ -35,12 +35,22 @@ function App() {
   }, [darkMode]);
 
   useEffect(() => {
-    notificationService.initializeFCM(isTokenProcessed);
-    const unsubscribe = notificationService.listenToForegroundMessages();
-    return () => {
-      if (unsubscribe) unsubscribe();
-    };
-  }, []);
+    if (token) {
+      const timer = setTimeout(() => {
+        notificationService.initializeFCM(isTokenProcessed);
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [token]);
+
+  useEffect(() => {
+    if (token) {
+      const unsubscribe = notificationService.listenToForegroundMessages();
+      return () => {
+        if (unsubscribe) unsubscribe();
+      };
+    }
+  }, [token]);
 
   return (
     <div className="App">

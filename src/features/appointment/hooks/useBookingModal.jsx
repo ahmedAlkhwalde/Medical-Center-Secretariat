@@ -14,7 +14,6 @@ import {
   useAddAppointmentMutation,
   useDeleteAppointmentMutation,
   useUpdateAppointmentMutation,
-  useRealTimeAllAppointments,
 } from "../service/appointmentService";
 import {
   addAppointment,

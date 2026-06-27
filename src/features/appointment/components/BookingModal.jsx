@@ -14,11 +14,15 @@ import SearchIcon from "@mui/icons-material/Search";
 import CakeIcon from "@mui/icons-material/Cake";
 import { getSpecialtyLabel, DAY_LABELS } from "../../../features/appointment/store/appointmentslice";
 import { useBookingModal } from "../hooks/useBookingModal";
+import { useSelector } from "react-redux";
+import {useRealTimeAllAppointments} from "../service/appointmentService"
 
 const isMovableStatus = (status) =>
   status === "has booked" || status === "has changed";
 
 const BookingModal = ({ doctor, onClose, selectedDate }) => {
+  const user = useSelector((state) => state.auth.user.uuid);
+  useRealTimeAllAppointments(user);
   const {
     scrollRef,
     isApiLoading,

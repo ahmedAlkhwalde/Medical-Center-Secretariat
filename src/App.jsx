@@ -1,6 +1,6 @@
 import "./App.css";
 import React, { useEffect, useRef } from "react";
-import { Route, Routes, Navigate } from "react-router-dom";
+import { Route, Routes, Navigate, useLocation } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 
 import Layout from "./components/Layout";
@@ -20,6 +20,46 @@ import { applyThemeMode } from "./app/theme";
 import notificationService from "./features/notification/service/notificationChatService";
 import AppSnackbar from "./components/AppSnackbar";
 import { hideSnackbar } from "./features/uiSlice";
+import NotFoundPage from "./components/NotFoundPage";
+
+const VALID_MAIN_PATHS = [
+  "",
+  "schedule",
+  "patients-records",
+  "appointments",
+  "notifications",
+  "conversations",
+  "profile",
+];
+
+const MainPageRouter = () => {
+  const location = useLocation();
+
+  const subPath = location.pathname.replace("/main-page", "").replace(/^\//, "");
+
+  const isValidPath =
+    VALID_MAIN_PATHS.includes(subPath) ||
+    VALID_MAIN_PATHS.some((path) => subPath.startsWith(path + "/"));
+
+  if (!isValidPath) {
+    return <NotFoundPage />;
+  }
+
+  return (
+    <Layout>
+      <Routes>
+        <Route index element={<AppointmentsPage />} />
+        <Route path="schedule" element={<SchedulePage />} />
+        <Route path="patients-records" element={<PatientsRecordsPage />} />
+        <Route path="appointments" element={<AppointmentsPage />} />
+        <Route path="notifications" element={<NotificationPage />} />
+        <Route path="conversations" element={<ChatList />} />
+        <Route path="conversations/view/:id" element={<Conversation />} />
+        <Route path="profile" element={<ProfilePage />} />
+      </Routes>
+    </Layout>
+  );
+};
 
 function App() {
   const darkMode = useSelector((state) => state.ui.darkMode);
@@ -62,31 +102,23 @@ function App() {
           }
         />
         <Route path="/reset-password" element={<ForgotPasswordPage />} />
-        <Route path="/reset-password/verify" element={<VerifyResetCodePage />} />
-        <Route path="/reset-password/new-password" element={<NewPasswordPage />} />
+        <Route
+          path="/reset-password/verify"
+          element={<VerifyResetCodePage />}
+        />
+        <Route
+          path="/reset-password/new-password"
+          element={<NewPasswordPage />}
+        />
 
-        {/* لوحة التحكم الرئيسية مع Layout */}
         <Route
           path="/main-page/*"
           element={
-            isAuthed ? (
-              <Layout>
-                <Routes>
-                  <Route index element={<AppointmentsPage />} />
-                  <Route path="schedule" element={<SchedulePage />} />
-                  <Route path="patients-records" element={<PatientsRecordsPage />} />
-                  <Route path="appointments" element={<AppointmentsPage />} />
-                  <Route path="notifications" element={<NotificationPage />} />
-                  <Route path="conversations" element={<ChatList />} />
-                  <Route path="conversations/view/:id" element={<Conversation />} />
-                  <Route path="profile" element={<ProfilePage />} />
-                </Routes>
-              </Layout>
-            ) : (
-              <Navigate to="/" replace />
-            )
+            isAuthed ? <MainPageRouter /> : <Navigate to="/" replace />
           }
         />
+
+        <Route path="*" element={<NotFoundPage />} />
       </Routes>
 
       <AppSnackbar

@@ -49,9 +49,9 @@ const MainPageRouter = () => {
     <Layout>
       <Routes>
         <Route index element={<AppointmentsPage />} />
+        <Route path="appointments" element={<AppointmentsPage />} />
         <Route path="schedule" element={<SchedulePage />} />
         <Route path="patients-records" element={<PatientsRecordsPage />} />
-        <Route path="appointments" element={<AppointmentsPage />} />
         <Route path="notifications" element={<NotificationPage />} />
         <Route path="conversations" element={<ChatList />} />
         <Route path="conversations/view/:id" element={<Conversation />} />

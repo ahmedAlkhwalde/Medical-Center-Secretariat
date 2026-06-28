@@ -26,6 +26,12 @@ const formatGender = (gender = "") => {
 // دالة لتنسيق حالة الموعد مع الألوان المتوافقة
 const getStatusDetails = (status = "") => {
   switch (status.toLowerCase()) {
+    case "has booked":
+      return {
+        text: "تم الحجز",
+        classes:
+          "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20",
+      };
     case "has visited":
       return {
         text: "تمت الزيارة",

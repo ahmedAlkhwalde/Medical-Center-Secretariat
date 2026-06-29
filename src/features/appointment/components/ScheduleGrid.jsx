@@ -89,7 +89,8 @@ const ScheduleGrid = ({ currentWeekDays, setActiveDoctor }) => {
                           </div>
                           <div className="text-xs theme-text-muted font-bold mt-1">
                             {getSpecialtyLabel(doctor.specialty)} •{" "}
-                            {formatRoom(doctor.room)}
+                            {formatRoom(doctor.room)}{<br/>}
+                            {doctor.startHour} - {doctor.endHour}
                           </div>
                         </Motion.div>
                       ))}

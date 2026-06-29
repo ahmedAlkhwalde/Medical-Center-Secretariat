@@ -73,6 +73,8 @@ export const mapApiScheduleToFrontend = (apiData) => {
       day: dayMapping[item.day_name_en] || "SUN",
       time: "ALL_DAY_SHIFTS", // توحيد القيمة مع الـ TIME_SLOTS ليظهر الطبيب بالجدول فوراً
       workingHours: `from : ${startHour} to : ${endHour}`, 
+      startHour,
+      endHour,
       slot: doctorObj.slot || "00:20:00",
       room: item.clinic?.name ? item.clinic.name.replace("عيادة ", "") : "101",
       isActive: item.is_active

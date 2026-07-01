@@ -30,7 +30,7 @@ const getStatusDetails = (status = "") => {
       return {
         text: "تم الحجز",
         classes:
-          "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20",
+          "bg-gray-500/10 text-emerald-600 dark:text-gray-400 border-gray-500/20",
       };
     case "has visited":
       return {
@@ -49,6 +49,12 @@ const getStatusDetails = (status = "") => {
         text: "تم التعديل / التأجيل",
         classes:
           "bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20",
+      };
+    case "canceld":
+      return {
+        text: "تم الإلغاء",
+        classes:
+          "bg-red-500/10 text-red-600 dark:text-red-400 border-red-500/20",
       };
     default:
       return {
@@ -217,23 +223,14 @@ const PatientRecordDetail = ({ patient, onBack }) => {
                             />
                             <div>
                               <p className="text-[11px] theme-text-muted font-bold">
-                                رسوم الفحص (الكشفية)
+                                رسوم الفحص ({visit.type})
                               </p>
                               <p className="text-sm font-black theme-text">
                                 {formatCurrency(
-                                  visit.doctor_specialty?.checker,
+                                  visit.cost,
                                 )}
                               </p>
                             </div>
-                          </div>
-                          <div className="h-6 w-px bg-gray-300 dark:bg-gray-700 hidden sm:block" />
-                          <div>
-                            <p className="text-[11px] theme-text-muted font-bold">
-                              رسوم المراجعة
-                            </p>
-                            <p className="text-sm font-black theme-text-muted">
-                              {formatCurrency(visit.doctor_specialty?.review)}
-                            </p>
                           </div>
                         </div>
                       </div>

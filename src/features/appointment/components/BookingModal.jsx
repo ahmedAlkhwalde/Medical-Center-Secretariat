@@ -261,6 +261,10 @@ const BookingModal = ({ doctor, onClose, selectedDate }) => {
                       bookingDate: targetDateISO,
                       gender: apiMatch.gender,
                       status: apiMatch.status,
+                      price:apiMatch.price || "null",
+                      is_paid: apiMatch.is_paid || false,
+                      cost:apiMatch.cost,
+                      type:apiMatch.type,
                       isApiData: true,
                     };
                   } else {
@@ -277,7 +281,7 @@ const BookingModal = ({ doctor, onClose, selectedDate }) => {
                   const isChangig = status === "has changed";
                   const isWaiting = status === "is waiting";
                   const isVisited = status === "has visited";
-                  const isPaid = status === "paid";
+                  const isPaid = booking?.is_paid;
 
                   const canDrag = !!booking && isMovableStatus(booking.status);
 
@@ -349,7 +353,6 @@ const BookingModal = ({ doctor, onClose, selectedDate }) => {
                                 {isHasBooked && "تم الحجز"}
                                 {isChangig && "تم النقل"}
                                 {isWaiting && "في الانتظار"}
-                                {isPaid && "مكتمل ومدفوع"}
                                 {isVisited && "تمت الزيارة"}
                               </span>
                             </div>
@@ -366,7 +369,7 @@ const BookingModal = ({ doctor, onClose, selectedDate }) => {
                               )}
                               <span className="flex items-center gap-1">
                                 <EventAvailableIcon sx={{ fontSize: 14 }} />
-                                {booking.bookingDate}
+                                {booking.type} - {booking.cost} ل.س
                               </span>
                             </div>
                           </div>
@@ -404,7 +407,7 @@ const BookingModal = ({ doctor, onClose, selectedDate }) => {
                             </button>
                           )}
 
-                          {isVisited && (
+                          {(isVisited && isPaid === false) && (
                             <button
                               onClick={() =>
                                 updateToPaidMutation.mutate(booking.uuid, {

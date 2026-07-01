@@ -9,6 +9,7 @@ import { db } from "../../../firebase";
 export const appointmentService = {
   getDoctorAppointments: async (doctorUuid, selectedDate) => {
     const response = await apiClient.post(`/secretary/appointment/doctor/${doctorUuid}`, { date: selectedDate });
+    console.log("appoitment doctor: ",response.data);
     return response.data;
   },
 
@@ -89,7 +90,7 @@ export const useUpdateToWaitingMutation = () => {
       dispatch(showSnackbar({ message: "تم نقل الموعد إلى قائمة الانتظار بنجاح", variant: "success" }));
     },
     onError: (error) => {
-      const msg = error?.response?.data?.error || "فشل نقل الموعد إلى الانتظار";
+      const msg = error?.response?.data?.message || "فشل نقل الموعد إلى الانتظار";
       dispatch(showSnackbar({ message: msg, variant: "error" }));
     }
   });
@@ -105,7 +106,7 @@ export const useUpdateToPaidMutation = () => {
       dispatch(showSnackbar({ message: "تمت عملية تحصيل الدفع وإكمال الموعد بنجاح", variant: "success" }));
     },
     onError: (error) => {
-      const msg = error?.response?.data?.error || "فشلت عملية الدفع والتحصيل";
+      const msg = error?.response?.data?.message || "فشلت عملية الدفع والتحصيل";
       dispatch(showSnackbar({ message: msg, variant: "error" }));
     }
   });
@@ -119,7 +120,7 @@ export const useCreatePatientMutation = () => {
       dispatch(showSnackbar({ message: "تم تسجيل المريض الجديد بنجاح", variant: "success" }));
     },
     onError: (error) => {
-      const msg = error?.response?.data?.error || "فشل تسجيل المريض الجديد";
+      const msg = error?.response?.data?.message || "فشل تسجيل المريض الجديد";
       dispatch(showSnackbar({ message: msg, variant: "error" }));
     }
   });
@@ -134,7 +135,7 @@ export const useUpdatePatientMutation = () => {
       dispatch(showSnackbar({ message: successMsg, variant: "success" }));
     },
     onError: (error) => {
-      const msg = error?.response?.data?.error || "فشل تحديث بيانات المريض";
+      const msg = error?.response?.data?.message || "فشل تحديث بيانات المريض";
       dispatch(showSnackbar({ message: msg, variant: "error" }));
     }
   });

@@ -25,7 +25,7 @@ export const usePatientHistoryQuery = (uuid) => {
     queryFn: async () => {
       if (!uuid) return null;
       const response = await apiClient.get(`/secretary/${uuid}/appointments`);
-      console.log(response.data);
+      console.log("history:",response.data);
       return response.data;
     },
     enabled: !!uuid, // يتم التفعيل فقط عند تمرير uuid صالح

@@ -63,8 +63,6 @@ export const mapApiScheduleToFrontend = (apiData) => {
     const doctorObj = item.doctlor || item.doctor || {}; // التعامل الآمن مع الـ Typo لقاعدة البيانات
     const startHour = item.start_time ? item.start_time.substring(0, 5) : "00:00";
     const endHour = item.end_time ? item.end_time.substring(0, 5) : "00:00";
-    console.log("doctor obj: ",doctorObj);
-    console.log("doctor slot slice : ",doctorObj.slot);
     return {
       id: doctorObj.uuid || item.uuid,
       scheduleUuid: item.uuid,

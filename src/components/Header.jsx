@@ -46,7 +46,7 @@ const Header = ({ isDark, onToggleTheme }) => {
           </button>
 
           <div className="min-w-0 md:hidden">
-            <p className="truncate text-sm font-bold theme-text">مركز الشفاء</p>
+            <p className="truncate text-sm font-bold theme-text">Medica</p>
             <p className="text-[10px] theme-text-muted">لوحة التحكم</p>
           </div>
 
@@ -55,7 +55,7 @@ const Header = ({ isDark, onToggleTheme }) => {
               className="theme-text-accent"
               sx={{ fontSize: 24 }}
             />
-            <span>مركز الشفاء الطبي</span>
+            <span>Medica</span>
           </div>
         </div>
 

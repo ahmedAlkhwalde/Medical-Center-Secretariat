@@ -31,7 +31,7 @@ import ChatRoundedIcon from "@mui/icons-material/ChatRounded"; // مضاف من 
 import PersonIcon from "@mui/icons-material/Person"; // مضاف من main
 
 // استيراد المكون الجديد من فرع main
-import LogoutModal from "../features/auth/Components/LogoutModal"; 
+import LogoutModal from "../features/auth/Components/LogoutModal";
 
 // دمج عناصر القائمة وتعديل الـ id لضمان عدم التكرار
 const navItems = [
@@ -86,7 +86,7 @@ const Sidebar = () => {
           showSnackbar({
             message: "تم تسجيل الخروج بنجاح",
             variant: "success",
-          })
+          }),
         );
       },
       onError: () => {
@@ -94,7 +94,7 @@ const Sidebar = () => {
           showSnackbar({
             message: "تعذر تسجيل الخروج. حاول لاحقاً.",
             variant: "error",
-          })
+          }),
         );
         setLogoutModalOpen(false);
       },
@@ -144,7 +144,7 @@ const Sidebar = () => {
                 className="text-center mt-3"
               >
                 <h1 className="text-lg font-bold theme-text whitespace-nowrap">
-                  مركز الشفاء الطبي
+                  Medica
                 </h1>
                 <p className="text-[10px] theme-text-muted font-medium">
                   نظام الإدارة المتكامل
@@ -157,7 +157,11 @@ const Sidebar = () => {
             onClick={() => dispatch(toggleCollapse())}
             className="hidden md:flex cursor-pointer absolute left-1 top-2 theme-surface border theme-border rounded-full p-1 shadow-md theme-hover-accent theme-text-muted transition-all active:scale-90"
           >
-            {isCollapsed ? <ChevronLeftIcon fontSize="small" /> : <ChevronRightIcon fontSize="small" />}
+            {isCollapsed ? (
+              <ChevronLeftIcon fontSize="small" />
+            ) : (
+              <ChevronRightIcon fontSize="small" />
+            )}
           </button>
 
           <button
@@ -175,7 +179,9 @@ const Sidebar = () => {
               key={item.id}
               to={item.path}
               end={item.path === "/main-page"}
-              onClick={() => window.innerWidth < 768 && dispatch(closeMobileMenu())}
+              onClick={() =>
+                window.innerWidth < 768 && dispatch(closeMobileMenu())
+              }
               className={({ isActive }) => `
                 flex items-center gap-4 px-4 py-3 rounded-xl transition-all duration-300 group
                 ${

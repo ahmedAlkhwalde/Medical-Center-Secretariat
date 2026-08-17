@@ -16,7 +16,7 @@ export const useChatView = () => {
     currentUserId: myUserId,
     chatName = "غرفة محادثة",
     avatarUrl = "",
-    role = "مركز الشفاء الطبي",
+    role = "Medica",
     isActive = true,
   } = location.state || {};
 
@@ -64,7 +64,8 @@ export const useChatView = () => {
   }, [presenceData?.status, c.peerPresence?.status]);
 
   useEffect(() => {
-    if (!firebaseRoomKey || firebaseRoomKey === "placeholder_room" || !targetId) return;
+    if (!firebaseRoomKey || firebaseRoomKey === "placeholder_room" || !targetId)
+      return;
 
     const roomRef = doc(db, "ChatRooms", firebaseRoomKey);
 
@@ -76,7 +77,8 @@ export const useChatView = () => {
           ? String(targetId)
           : `user_${targetId}`;
         const rawTargetId = String(targetId).replace("user_", "");
-        const peerData = presenceMap[formattedTargetId] || presenceMap[rawTargetId];
+        const peerData =
+          presenceMap[formattedTargetId] || presenceMap[rawTargetId];
 
         if (peerData && typeof peerData === "object") {
           setPresenceData(peerData);
@@ -106,7 +108,8 @@ export const useChatView = () => {
     document.addEventListener("visibilitychange", handleVisibilityChange);
 
     return () => {
-      if (typeof c.updateUserPresence === "function") c.updateUserPresence("offline");
+      if (typeof c.updateUserPresence === "function")
+        c.updateUserPresence("offline");
       document.removeEventListener("visibilitychange", handleVisibilityChange);
       unsub();
     };
@@ -116,7 +119,8 @@ export const useChatView = () => {
 
   // منطق الصوت
   const formatTime = (timeInSeconds) => {
-    if (!isFinite(timeInSeconds) || isNaN(timeInSeconds) || timeInSeconds < 0) return "0:00";
+    if (!isFinite(timeInSeconds) || isNaN(timeInSeconds) || timeInSeconds < 0)
+      return "0:00";
     const minutes = Math.floor(timeInSeconds / 60);
     const seconds = Math.floor(timeInSeconds % 60);
     return `${minutes}:${seconds < 10 ? "0" : ""}${seconds}`;
@@ -137,7 +141,11 @@ export const useChatView = () => {
       }
     };
     const handleDurationChange = () => {
-      if (playingMessageId && isFinite(player.duration) && player.duration > 0) {
+      if (
+        playingMessageId &&
+        isFinite(player.duration) &&
+        player.duration > 0
+      ) {
         setAudioDuration(player.duration);
       } else if (player.seekable && player.seekable.length > 0) {
         setAudioDuration(player.seekable.end(0));
@@ -162,7 +170,9 @@ export const useChatView = () => {
   const handlePlayOrPauseAudio = async (e, messageId, fileUrl) => {
     e.preventDefault();
     e.stopPropagation();
-    const safeUrl = fileUrl ? fileUrl.replace(/http:\/\/[0-9.]+:8000/, BACKEND_URL) : "";
+    const safeUrl = fileUrl
+      ? fileUrl.replace(/http:\/\/[0-9.]+:8000/, BACKEND_URL)
+      : "";
     const player = globalAudioPlayer;
 
     if (playingMessageId === messageId) {
@@ -235,7 +245,8 @@ export const useChatView = () => {
     }
   };
 
-  const isLoading = getOrCreateRoomMutation.isLoading || !firebaseRoomKey || c.isRoomLoading;
+  const isLoading =
+    getOrCreateRoomMutation.isLoading || !firebaseRoomKey || c.isRoomLoading;
 
   return {
     navigate,

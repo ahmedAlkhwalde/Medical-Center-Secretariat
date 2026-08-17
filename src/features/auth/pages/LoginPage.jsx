@@ -36,7 +36,7 @@ const LoginPage = () => {
             transition={{ delay: 0.2 }}
             className="text-5xl font-black theme-text-on-accent mb-6 leading-tight"
           >
-            إدارة الاستقبال <br /> مركز الشفاء
+            إدارة الاستقبال <br /> Medica
           </Motion.h1>
           <p className="text-lg theme-text-on-accent opacity-80 font-medium leading-relaxed">
             منصتكِ اليومية لتنظيم تدفق المرضى، جدولة الحجوزات بدقة، وتنسيق
@@ -126,7 +126,7 @@ const LoginPage = () => {
 
           <div className="mt-5 text-center border-t theme-border pt-6">
             <p className="text-xs theme-text-muted font-bold">
-              جميع الحقوق محفوظة لمركز الشفاء الطبي © 2026
+              جميع الحقوق محفوظة لـ Medica © 2026
             </p>
           </div>
         </div>

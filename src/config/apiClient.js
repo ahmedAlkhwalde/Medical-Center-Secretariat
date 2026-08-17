@@ -18,13 +18,20 @@ const readStoredToken = () => {
   }
 };
 
-export var host_chat = 'http://127.0.0.1:8000';
+// export var host_chat = 'https://medical-center-management.onrender.com';
+export var host_chat = 'https://tweak-recant-gout.ngrok-free.dev';
+// export var host_chat = 'https://mistyrose-albatross-114828.hostingersite.com';
+// export var host_chat = 'http://127.0.0.1:8000';
 
 const apiClient = axios.create({
-  baseURL: `http://127.0.0.1:8000/api`, 
+  // baseURL: 'https://medical-center-management.onrender.com/api', 
+  baseURL: 'https://tweak-recant-gout.ngrok-free.dev/api', 
+  // baseURL: 'https://mistyrose-albatross-114828.hostingersite.com/public/api/', 
+  // baseURL: 'http://127.0.0.1:8000/api',  
   timeout: 60000,
   headers: {
     'Accept': 'application/json',
+    'ngrok-skip-browser-warning': 'true'
   },
 });
 

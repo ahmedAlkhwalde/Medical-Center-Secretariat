@@ -74,7 +74,7 @@ const NotFoundPage = () => {
 
         {/* نص سفلي */}
         <p className="mt-6 text-center text-xs theme-text-muted">
-          مركز الشفاء الطبي © {new Date().getFullYear()} — نظام الإدارة المتكامل
+          Medica © {new Date().getFullYear()} — نظام الإدارة المتكامل
         </p>
       </motion.div>
     </div>

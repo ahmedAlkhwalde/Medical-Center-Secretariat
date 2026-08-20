@@ -6,6 +6,33 @@ export const normalizeSearchText = (value = "") =>
     .replace(/\u0640/g, "")
     .trim();
 
+export const formatTimeTo24Hour = (value) => {
+  if (!value) return "";
+
+  const text = value.toString().trim();
+  const amPmMatch = text.match(/^(\d{1,2}):(\d{2})(?::\d{2})?\s*([AaPp][Mm])$/);
+  if (amPmMatch) {
+    let hours = Number(amPmMatch[1]);
+    const minutes = amPmMatch[2];
+    const period = amPmMatch[3].toUpperCase();
+
+    if (period === "AM") {
+      hours = hours === 12 ? 0 : hours;
+    } else if (hours !== 12) {
+      hours += 12;
+    }
+
+    return `${String(hours).padStart(2, "0")}:${minutes}`;
+  }
+
+  const twentyFourHourMatch = text.match(/^(\d{1,2}):(\d{2})(?::\d{2})?$/);
+  if (twentyFourHourMatch) {
+    return `${String(Number(twentyFourHourMatch[1])).padStart(2, "0")}:${twentyFourHourMatch[2]}`;
+  }
+
+  return text;
+};
+
 export const formatScheduleValue = (value) => {
   if (!value) {
     return "-";
@@ -21,8 +48,11 @@ export const formatScheduleValue = (value) => {
   }
 
   if (/^\d{1,2}:\d{2}(:\d{2})?$/.test(value)) {
-    const [hours = "00", minutes = "00"] = value.split(":");
-    return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
+    return formatTimeTo24Hour(value);
+  }
+
+  if (/^\d{1,2}:\d{2}\s*[AaPp][Mm]$/.test(value)) {
+    return formatTimeTo24Hour(value);
   }
 
   return value;

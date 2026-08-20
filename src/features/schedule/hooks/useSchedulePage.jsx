@@ -1,5 +1,8 @@
 import { useEffect, useMemo, useState, useCallback } from "react";
-import { normalizeSearchText } from "../components/scheduleFormatters";
+import {
+  normalizeSearchText,
+  formatTimeTo24Hour,
+} from "../components/scheduleFormatters";
 import {
   useSchedulesQuery,
   useCreateScheduleMutation,
@@ -57,8 +60,8 @@ const transformScheduleData = (apiData) => {
       uuid:
         source.uuid ||
         `${fallbackUuid}-${variant}-${doctor.id || source.day || "shift"}`,
-      start: source.start_time?.substring(0, 5) || "",
-      end: source.end_time?.substring(0, 5) || "",
+      start: formatTimeTo24Hour(source.start_time),
+      end: formatTimeTo24Hour(source.end_time),
       label: label || (variant === "modified" ? "معدل" : "أساسي"),
       variant,
       doctorId: doctor.id,
